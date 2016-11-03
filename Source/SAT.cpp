@@ -339,18 +339,7 @@ bool SAT::isValid() const
 {
 	return this->Valid;
 }
-bool SAT::Evaluate(const int * variables) const
-{
-	assert(this->clauses != NULL);
-	for(list <Clause *>::const_iterator iter = this->clauses->cbegin(); iter != this->clauses->cend(); iter++)
-	{
-		if(!(*iter)->Evaluate(variables))
-		{
-			return false;
-		}
-	}
-	return true;
-}
+
 bool SAT::Evaluate(const list <int> * variables) const
 {
 	assert(this->clauses != NULL);

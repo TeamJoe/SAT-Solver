@@ -1,4 +1,3 @@
-#include <new>
 #include <list>
 #include <iostream>
 
@@ -6,7 +5,6 @@
 #include "SATState.h"
 #include "SATSolverState.h"
 #include "SATSolver.h"
-#include "DepthSolver.h"
 
 //For checking that all output is correct
 #include <assert.h>
@@ -227,18 +225,18 @@ void * createDepthSatVariable(const SAT * sat, const unsigned int currentCount, 
 }
 
 
-int _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSolverState * solverState, const list <SortFunction *> * SortFunctions, int (Decider)(const VariableState *), const unsigned long long maxDepth);
-ReturnValue * solveDepthSat(const SATSolver * solver, void * variables)
+int _DepthSat(ReturnValue * value, SATSolver * solver, SATSolverState * solverState, const list <SortFunction *> * SortFunctions, int (Decider)(const VariableState *), const unsigned long long maxDepth);
+ReturnValue * DepthSat(SATSolver * solver, SATSolverState * solverState, void * variables)
 {
 	DepthSatVariables * depthSatVariables = (DepthSatVariables *)variables;
 
 	ReturnValue * value = new ReturnValue;
-	value->solutions = new list<const int *>();
-	value->state = new SATSolverState(solver->getSAT());
+	value->solutions = new list<const list <int> *>();
+	value->state = solverState;
 
 #ifdef OUTPUT_INTERMEDIATE_SOLUTION
 	cout << "(Start): ";
-	const list <const list <int> *> * currentClauses = &value->state->getState()->getRemainingClauses();
+	const list <const list <int> *> * currentClauses = &solverState->getState()->getRemainingClauses();
 	for(list <const list <int> *>::const_iterator iter = currentClauses->cbegin(); iter != currentClauses->cend(); iter++)
 	{
 		cout << "(";
@@ -257,7 +255,7 @@ ReturnValue * solveDepthSat(const SATSolver * solver, void * variables)
 #endif
 
 	//Run the evaluation
-	int i = _solveDepthSat(value, solver, value->state, depthSatVariables->SortFunctions, depthSatVariables->Decider, depthSatVariables->maxDepth);
+	int i = _DepthSat(value, solver, solverState, depthSatVariables->SortFunctions, depthSatVariables->Decider, depthSatVariables->maxDepth);
 	if (i < 0)
 	{
 		if (value->solutions->size() > 0)
@@ -290,12 +288,11 @@ ReturnValue * solveDepthSat(const SATSolver * solver, void * variables)
 #endif
 
 	delete depthSatVariables->SortFunctions;
-	delete depthSatVariables;
 
 	return value;
 }
 
-int _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSolverState * solverState, const list <SortFunction *> * SortFunctions, int (Decider)(const VariableState *), const unsigned long long maxDepth)
+int _DepthSat(ReturnValue * value, SATSolver * solver, SATSolverState * solverState, const list <SortFunction *> * SortFunctions, int (Decider)(const VariableState *), const unsigned long long maxDepth)
 {
 	//If all variable have a solution
 	const SATState * satState = solverState->getState();
@@ -304,16 +301,9 @@ int _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSolverState
 		//If the solution is the opposite of what we currently have
 		if (satState->getRemainingClauseCount() == 0)
 		{
-			try
-			{
-				value->solutions->push_back(satState->getState());
-			}
-			catch (std::bad_alloc& ba)
-			{
-				return -3;
-			}
+			value->solutions->push_back(&satState->getState());
 #ifdef _DEBUG
-			for (list<const int *>::const_iterator iter = value->solutions->cbegin(); iter != value->solutions->cend(); iter++)
+			for (list<const list<int> *>::const_iterator iter = value->solutions->cbegin(); iter != value->solutions->cend(); iter++)
 			{
 				assert(satState->getSAT()->Evaluate(*iter));
 			}
@@ -329,16 +319,9 @@ int _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSolverState
 	//exclude whole chains where every branch evaluates to true
 	if (satState->getRemainingClauseCount() == 0)
 	{
-		try
-		{
-			value->solutions->push_back(satState->getState());
-		}
-		catch (std::bad_alloc& ba)
-		{
-			return -3;
-		}
+		value->solutions->push_back(&satState->getState());
 #ifdef _DEBUG
-		for (list<const int *>::const_iterator iter = value->solutions->cbegin(); iter != value->solutions->cend(); iter++)
+		for (list<const list<int> *>::const_iterator iter = value->solutions->cbegin(); iter != value->solutions->cend(); iter++)
 		{
 			assert(satState->getSAT()->Evaluate(*iter));
 		}
@@ -349,7 +332,7 @@ int _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSolverState
 		return 1;
 	}
 
-	if (0 < maxDepth && maxDepth < satState->getVariableAttempts())
+	if (maxDepth < satState->getVariableAttempts())
 	{
 		return -1;
 	}
@@ -398,7 +381,7 @@ int _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSolverState
 		|| (solution == VARIABLE_UNKNOWN && var1->getValue() != 0)
 		|| (solution == VARIABLE_NO_SOLUTION && var1->getValue() != 0));
 
-	int i = _solveDepthSat(value, solver, solverState, SortFunctions, Decider, maxDepth);
+	int i = _DepthSat(value, solver, solverState, SortFunctions, Decider, maxDepth);
 #ifdef END_ON_FIRST_SOLUTION
 	if (i != 0) {
 #else
@@ -407,7 +390,7 @@ int _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSolverState
 		return i;
 	}
 
-	if (0 < maxDepth && maxDepth < satState->getVariableAttempts())
+	if (maxDepth < satState->getVariableAttempts())
 	{
 		return -1;
 	}
@@ -447,7 +430,7 @@ int _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSolverState
 			|| (solution == VARIABLE_UNKNOWN && var1->getValue() != 0)
 			|| (solution == VARIABLE_NO_SOLUTION && var1->getValue() != 0));
 
-		int i = _solveDepthSat(value, solver, solverState, SortFunctions, Decider, maxDepth);
+		int i = _DepthSat(value, solver, solverState, SortFunctions, Decider, maxDepth);
 #ifdef END_ON_FIRST_SOLUTION
 		if (i != 0) {
 #else

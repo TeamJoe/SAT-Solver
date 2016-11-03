@@ -32,18 +32,18 @@ ClauseState * ClauseState::copy(SATState * sat)
 bool ClauseState::isActive() const
 {
 #if _DEBUG
-	const int * state = this->satState->getState();
+	const list <int> * state = &this->satState->getState();
 	assert(this->Active != this->clause->Evaluate(state));
-	delete [] state;
+	delete state;
 #endif
 	return this->Active;
 }
 bool ClauseState::isTrue() const
 {
 #if _DEBUG
-	const int * state = this->satState->getState();
+	const list <int> * state = &this->satState->getState();
 	assert(this->Active == this->clause->Evaluate(state));
-	delete [] state;
+	delete state;
 #endif
 	return this->True;
 }

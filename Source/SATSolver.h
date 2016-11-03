@@ -10,7 +10,7 @@ struct Solution;
 using namespace std;
 
 typedef void * (*SolverCreator)(const SAT * sat, const unsigned int currentCount, const unsigned int totalCount, const void * variables);
-typedef ReturnValue * (*SolverFunction)(const SATSolver * solver, void * variables);
+typedef ReturnValue * (*SolverFunction)(SATSolver * solver, SATSolverState * solverState, void * variables);
 typedef void (*AnalysisFunction)(ofstream & file, const ReturnValue * value);
 
 #ifndef SAT_SOLVER_H
@@ -27,7 +27,7 @@ using namespace std;
 
 struct ReturnValue
 {
-	list<const int *> * solutions;
+	list<const list <int> *> * solutions;
 	SATSolverState * state;
 	SolvedStates solved;
 	bool terminateRemaingThreads;
@@ -36,7 +36,7 @@ struct ReturnValue
 
 struct Solution
 {
-	list<const int *> * solutions;
+	list<const list <int> *> * solutions;
 	SolvedStates solved;
 };
 
@@ -49,19 +49,16 @@ private:
 	unsigned int totalThreads;
 protected:
 	void _runSolverParallel(SolverFunction solverFunction, const unsigned int currentThread, void * variables);
+	Solution * analysisResults(ofstream & file, AnalysisFunction analysisFunction);
 public:
 
 	//Constructors
 	SATSolver();
 	~SATSolver();
 
-	const SAT * getSAT() const;
-
 	volatile bool isTerminatingAllThreads;
 	void terminateAllThreads();
-	void cleanSolution();
-	Solution & analysisResults(ofstream & file, AnalysisFunction analysisFunction);
-	void runSolver(const SAT * sat, void * variables, SolverFunction solverFunction);
-	void runSolverParallel(const SAT * sat, const unsigned int threadCount, void * variables, SolverCreator solverCreator, SolverFunction solverFunction);
+	Solution & runSolver(ofstream & file, const SAT * sat, void * variables, SolverFunction solverFunction, AnalysisFunction analysisFunction);
+	Solution & runSolverParallel(ofstream & file, const SAT * sat, const unsigned int threadCount, void * variables, SolverCreator solverCreator, SolverFunction solverFunction, AnalysisFunction analysisFunction);
 };
 #endif

@@ -42,7 +42,6 @@ public:
 	//Checker Functions
 	unsigned int getIdentifier() const;
 	bool isValid() const;
-	bool Evaluate(const int * variables) const;
 	bool Evaluate(const list <int> * variables) const;
 
 	//Solver Functions

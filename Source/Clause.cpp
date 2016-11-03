@@ -175,44 +175,6 @@ bool Clause::Contains(const Literal * lit) const
 	}
 	return false;
 }
-
-bool Clause::Evaluate(const int * variables) const
-{
-	assert(this->_size > 0);
-	assert(this->clause != NULL);
-	if(this->_size < (unsigned int)variables[0])
-	{
-		assert(variables[variables[0] + 1] == NULL);
-		for(int i = 1; i < (variables[0] + 1); i++)
-		{
-			for(unsigned int j = 0; j < this->_size; j++)
-			{
-				assert(this->clause[j]->getClause() == this);
-				if(this->clause[j]->getValue() == variables[i])
-				{
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-	else
-	{
-		assert(variables[variables[0] + 1] == NULL);
-		for(unsigned int j = 0; j < this->_size; j++)
-		{
-			for(int i = 1; i < (variables[0] + 1); i++)
-			{
-				assert(this->clause[j]->getClause() == this);
-				if(this->clause[j]->getValue() == variables[i])
-				{
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-}
 bool Clause::Evaluate(const list <int> * variables) const
 {
 	assert(this->_size > 0);

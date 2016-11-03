@@ -36,7 +36,6 @@ public:
 	bool Contains(const Variable * variable) const;
 	bool Contains(const Variable * variable, const bool isPositive) const;
 	bool Contains(const Literal * lit) const;
-	bool Evaluate(const int * variables) const;
 	bool Evaluate(const list <int> * variables) const;
 	bool isValid() const;
 

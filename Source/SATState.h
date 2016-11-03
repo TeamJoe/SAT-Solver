@@ -61,7 +61,7 @@ public:
 	unsigned int getRemainingVariableCount() const;
 	bool hasSolution() const;
 	bool canSolve() const;
-	const int * getState() const; //return variable needs to be cleaned up
+	const list <int> & getState() const; //return variable needs to be cleaned up
 	const list<const list <int> *> & getRemainingClauses() const; //return variable needs to be cleaned up
 	unsigned int getVariableAttempts() const;
 

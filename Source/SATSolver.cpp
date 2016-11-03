@@ -34,11 +34,6 @@ SATSolver::~SATSolver()
 	assert(this->totalThreads == 0);
 }
 
-const SAT * SATSolver::getSAT() const
-{
-	return this->sat;
-}
-
 void SATSolver::terminateAllThreads()
 {
 	this->isTerminatingAllThreads = true;
@@ -55,69 +50,14 @@ void SATSolver::terminateAllThreads()
 	}
 }
 
-void cleanEachSolution(const ReturnValue * deleteValue)
-{
-	delete deleteValue->state;
-	if (deleteValue->solutions != NULL)
-	{
-		list<const int *>::const_iterator end = deleteValue->solutions->cend();
-		for (list<const int *>::const_iterator iter = deleteValue->solutions->cbegin(); iter != end; iter++)
-		{
-			delete [] *iter;
-		}
-		delete deleteValue->solutions;
-	}
-
-	delete deleteValue;
-}
-
-void SATSolver::cleanSolution()
-{
-	assert(this->threads == NULL);
-	this->threads = new thread *[this->totalThreads];
-
-	// Clean up the return variable
-	for(unsigned int i = 0; i < this->totalThreads; i++)
-	{
-		this->threads[i] = NULL;
-		assert(this->returnValues[i]->variables == NULL);
-		if (i < this->totalThreads - 1)
-		{
-			this->threads[i] = new thread(&cleanEachSolution, this->returnValues[i]);
-		}
-		else
-		{
-			cleanEachSolution(this->returnValues[i]);
-		}
-	}
-
-	//Clean up threads
-	for(unsigned int i = 0; i < this->totalThreads - 1; i++)
-	{
-		this->threads[i]->join();
-		delete this->threads[i];
-	}
-	delete [] this->threads;
-	this->threads = NULL;
-
-	// Clean up return values
-	delete [] this->returnValues;
-	this->returnValues = NULL;
-
-	// Clean up remaining variables
-	this->sat = NULL;
-	this->totalThreads = 0;
-}
-
-
-Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysisFunction)
+Solution * SATSolver::analysisResults(ofstream & file, AnalysisFunction analysisFunction)
 {
 	assert(this->returnValues != NULL);
 
 	Solution * solution = new Solution;
 	solution->solved = NOT_COMPLETED;
 	solution->solutions = NULL;
-	
+	list<const list <int> *> * deleteList = NULL;
 	for(unsigned int i = 0; i < this->totalThreads; i++)
 	{
 		//Adjust the solution variable
@@ -134,10 +74,19 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 				{
 					if (solution->solutions->size() < this->returnValues[i]->solutions->size())
 					{
+						deleteList = solution->solutions;
 						solution->solutions = this->returnValues[i]->solutions;
+					}
+					else
+					{
+						deleteList = this->returnValues[i]->solutions;
 					}
 				}
 				solution->solved = this->returnValues[i]->solved;
+			}
+			else
+			{
+				deleteList = this->returnValues[i]->solutions;
 			}
 		}
 		else if (this->returnValues[i]->solved == COMPLETED_SOLUTION)
@@ -153,12 +102,18 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 				{
 					if (solution->solutions->size() > this->returnValues[i]->solutions->size())
 					{
+						deleteList = solution->solutions;
 						solution->solutions = this->returnValues[i]->solutions;
+					}
+					else
+					{
+						deleteList = this->returnValues[i]->solutions;
 					}
 				}
 			}
 			else
 			{
+				deleteList = solution->solutions;
 				solution->solutions = this->returnValues[i]->solutions;
 			}
 			solution->solved = this->returnValues[i]->solved;
@@ -167,11 +122,13 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 		{
 			assert(solution->solved != COMPLETED_SOLUTION && solution->solved != NOT_COMPLETED_SOLUTION);
 			assert(this->returnValues[i]->solutions == NULL || this->returnValues[i]->solutions->size() == 0);
+			deleteList = this->returnValues[i]->solutions;
 			solution->solved = this->returnValues[i]->solved;
 		}
 		else if (this->returnValues[i]->solved == NOT_COMPLETED_NO_SOLUTION || this->returnValues[i]->solved == COMPLETED_UNKNOWN)
 		{
 			assert(this->returnValues[i]->solutions == NULL || this->returnValues[i]->solutions->size() == 0);
+			deleteList = this->returnValues[i]->solutions;
 			if (solution->solved == NOT_COMPLETED)
 			{
 				solution->solved = this->returnValues[i]->solved;
@@ -180,30 +137,43 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 		else if (this->returnValues[i]->solved == NOT_COMPLETED)
 		{
 			assert(this->returnValues[i]->solutions == NULL || this->returnValues[i]->solutions->size() == 0);
+			deleteList = this->returnValues[i]->solutions;
 		}
 
 		//Output other analysis to file
 		file << this->returnValues[i]->solved;
 		file << " (" << this->returnValues[i]->state->getState()->getVariableAttempts() << ")";
-		if (this->returnValues[i]->solutions == NULL)
-		{
-			file << " (0)";
-		}
-		else
-		{
-			file << " (" << this->returnValues[i]->solutions->size() << ")";
-		}
 		if (analysisFunction != NULL)
 		{
 			analysisFunction(file, this->returnValues[i]);
 		}
 		file << ",";
+
+		// Clean up the return variable
+		assert(this->returnValues[i]->variables == NULL);
+		delete this->returnValues[i]->state;
+		if (deleteList != NULL)
+		{
+			list<const list <int> *>::const_iterator end = deleteList->cend();
+			for (list<const list <int> *>::const_iterator iter = deleteList->cbegin(); iter != end; iter++)
+			{
+				delete *iter;
+			}
+			delete deleteList;
+		}
+		deleteList = NULL;
+
+		delete this->returnValues[i];
 	}
 
-	return *solution;
+	// Clean up return values
+	delete this->returnValues;
+	this->returnValues = NULL;
+
+	return solution;
 }
 
-void SATSolver::runSolver(const SAT * sat, void * variables, SolverFunction solverFunction)
+Solution & SATSolver::runSolver(ofstream & file, const SAT * sat, void * variables, SolverFunction solverFunction, AnalysisFunction analysisFunction)
 {
 	//Check for legal start
 	assert(sat != NULL);
@@ -221,23 +191,35 @@ void SATSolver::runSolver(const SAT * sat, void * variables, SolverFunction solv
 	this->returnValues = new ReturnValue *[1];
 
 	// Run solution
-	this->returnValues[0] = solverFunction(this, variables);
+	SATSolverState * startState = new SATSolverState(this->sat);
+	this->returnValues[0] = solverFunction(this, startState, variables);
 	delete variables;
 
-	this->isTerminatingAllThreads = true;
+	//Analyze Result
+	Solution * finalState = this->analysisResults(file, analysisFunction);
+	assert(this->returnValues == NULL);
+
+	// Clean up remaining variables
+	this->sat = NULL;
+	this->totalThreads = 0;
+
+	//Return result
+	return *finalState;
 }
 
 void SATSolver::_runSolverParallel(SolverFunction solverFunction, const unsigned int currentThread, void * variables)
 {
-	ReturnValue * value = solverFunction(this, variables);
+	SATSolverState * startState = new SATSolverState(this->sat);
+	ReturnValue * value = solverFunction(this, startState, variables);
 	if (value->terminateRemaingThreads)
 	{
 		this->isTerminatingAllThreads = true;
 	}
 	this->returnValues[currentThread] = value;
+	delete variables;
 }
 
-void SATSolver::runSolverParallel(const SAT * sat, const unsigned int threadCount, void * variables, SolverCreator solverCreator, SolverFunction solverFunction)
+Solution & SATSolver::runSolverParallel(ofstream & file, const SAT * sat, const unsigned int threadCount, void * variables, SolverCreator solverCreator, SolverFunction solverFunction, AnalysisFunction analysisFunction)
 {
 	//Check for legal start
 	assert(sat != NULL);
@@ -281,6 +263,17 @@ void SATSolver::runSolverParallel(const SAT * sat, const unsigned int threadCoun
 		this->threads[i]->join();
 		delete this->threads[i];
 	}
-	delete [] this->threads;
+	delete this->threads;
 	this->threads = NULL;
+
+	//Analyze Result
+	Solution * finalState = this->analysisResults(file, analysisFunction);
+	assert(this->returnValues == NULL);
+
+	// Clean up remaining variables
+	this->sat = NULL;
+	this->totalThreads = 0;
+
+	//Return result
+	return *finalState;
 }

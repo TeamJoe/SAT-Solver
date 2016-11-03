@@ -444,35 +444,19 @@ bool SATState::canSolve() const
 
 	return true;
 }
-const int * SATState::getState() const
+const list <int> & SATState::getState() const
 {
-	int count = this->variables->size() - this->activeVariableCount;
-	if (count <= 0)
+	list <int> * currentState = new list <int> ();
+	for(map <unsigned int, VariableState *>::const_iterator iter = this->variables->cbegin(); iter != this->variables->cend(); iter++)
 	{
-		int * currentState = new int[2];
-		currentState[0] = 0;
-		currentState[1] = NULL;
-		return currentState;
-	}
-	else
-	{
-		int * currentState = new int[count + 2];
-		int i = 1;
-		currentState[0] = count;
-		for(map <unsigned int, VariableState *>::const_iterator iter = this->variables->cbegin(); iter != this->variables->cend(); iter++)
+		if (!iter->second->isActive())
 		{
-			if (!iter->second->isActive())
-			{
-				assert(i < (count + 1));
-				assert(iter->second->getValue() != 0);
-				currentState[i++] = iter->second->getValue();
-			}
+			assert(iter->second->getValue() != 0);
+			currentState->push_back(iter->second->getValue());
 		}
-		assert(i == (count + 1));
-		currentState[count + 1] = NULL;
-
-		return currentState;
 	}
+
+	return *currentState;
 }
 const list<const list <int> *> & SATState::getRemainingClauses() const
 {
