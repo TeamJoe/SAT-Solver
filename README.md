@@ -13,4 +13,4 @@ This program also has the option to find all solutions, rather than just a singl
 
 Output file is listed in the following:
 
-Count_in_the_File, Program_Result(N) (Program_Variable_Tries(N))..., Program_Result, Variable_Count, Clause_Count, File_Location, (Program_Result)Number_of_Results_Found, Variables_In_Solution(N)(Solution(N))...
+Count_in_the_File, Program_Result(N) (Program_Variable_Tries(N)) (Program_Solutions_Found(N)), Program_Result, Variable_Count, Clause_Count, File_Location, Program_Result, Number_of_Results_Found, Compile_Time (Time to read the file), Analyze_Time (PreSolutioning time), Solve_Time (Time it actually spent solving), Clean_Time (Time is spent cleaning up) Total_Time (The actually time it took to run from start to finish)
