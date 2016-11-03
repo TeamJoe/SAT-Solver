@@ -9,3 +9,8 @@ I had added a bunch of different functions it would go through, in order to dete
 I also added many #define to quickly set how you wanted the program to run.
 This program was in no way optimized for parralization, as I only use multi-threading to test multiple methods at once.
 This program also has the option to find all solutions, rather than just a single solution, which in most cases completes in about the same amount of time.
+
+
+Output file is listed in the following:
+
+Count_in_the_File, Program_Result(N) (Program_Variable_Tries(N))..., Program_Result, Variable_Count, Clause_Count, File_Location, (Program_Result)Number_of_Results_Found, Variables_In_Solution(N)(Solution(N))...
