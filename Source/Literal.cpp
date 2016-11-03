@@ -1,18 +1,12 @@
 #include "Variable.h"
 #include "Literal.h"
+#include "Constants.h"
 
 //For checking that all output is correct
 #include <assert.h>
 
 //Memory leak detection
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
 #include "Debug.h"
-
-#ifdef _DEBUG
-#define new DEBUG_CLIENTBLOCK
-#endif
 
 
 //******************************
@@ -22,19 +16,18 @@
 //
 //------------------------------
 //******************************
-Literal::Literal(Variable * variable, Clause * clause, const bool isPositive)
+Literal::Literal(Variable * Variable, Clause * clause, const bool isPositive)
 {
 #ifdef _DEBUG
 	this->isDestroying = false;
 #endif
-	assert(variable != NULL);
+	assert(Variable != NULL);
 
-	this->variable = variable;
+	this->variable = Variable;
 	this->clause = clause;
 	this->Value = isPositive
 		? this->variable->GetVariable()
 		: (-1 * this->variable->GetVariable());
-	this->variable->Add(this);
 
 	assert(this->Value != NULL);
 }
@@ -53,21 +46,17 @@ Literal::~Literal()
 	this->clause = NULL;
 	this->Value = 0;
 }
-Literal * Literal::copy(const list<Variable *> * variables, Clause * clause) const
+void Literal::Add(Clause * clause)
 {
-	Variable * var = NULL;
-	for (list <Variable *>::const_iterator variable_iter = variables->cbegin(); variable_iter != variables->cend(); variable_iter++)
-	{
-		if ((*variable_iter)->GetVariable() == this->variable->GetVariable())
-		{
-			var = (*variable_iter);
-			break;
-		}
-	}
-	this->variable->GetVariable();
-	return new Literal(var, clause, this->GetType());
+	assert(clause != NULL);
+	this->clause = clause;
+	this->variable->Add(this);
 }
-
+void Literal::SetListPointer(list <Literal *>::const_iterator lit)
+{
+	assert(*lit == this);
+	this->listPointer = lit;
+}
 //******************************
 //------------------------------
 //
@@ -75,27 +64,27 @@ Literal * Literal::copy(const list<Variable *> * variables, Clause * clause) con
 //
 //------------------------------
 //******************************
-bool Literal::Contains(const Variable * variable) const
+bool Literal::Contains(const Variable * Variable) const
 {
-	assert(variable != NULL);
+	assert(Variable != NULL);
 	assert(this->variable != NULL);
-	return variable->GetVariable() == this->Value || (-1 * variable->GetVariable()) == this->Value;
+	return Variable->GetVariable() == this->Value || (-1 * Variable->GetVariable()) == this->Value;
 }
-bool Literal::Contains(const Variable * variable, const bool isPositive) const
+bool Literal::Contains(const Variable * Variable, const bool isPositive) const
 {
-	assert(variable != NULL);
+	assert(Variable != NULL);
 	assert(this->variable != NULL);
 	return isPositive
-		? variable->GetVariable() == this->Value
-		: (-1 * variable->GetVariable()) == this->Value;
+		? Variable->GetVariable() == this->Value
+		: (-1 * Variable->GetVariable()) == this->Value;
 }
-bool Literal::Opposite(const Variable * variable, const bool isPositive) const
+bool Literal::Opposite(const Variable * Variable, const bool isPositive) const
 {
-	assert(variable != NULL);
+	assert(Variable != NULL);
 	assert(this->variable != NULL);
 	return !isPositive
-		? variable->GetVariable() == this->Value
-		: (-1 * variable->GetVariable()) == this->Value;
+		? Variable->GetVariable() == this->Value
+		: (-1 * Variable->GetVariable()) == this->Value;
 }
 bool Literal::Contains(const Literal * lit) const
 {
@@ -114,20 +103,25 @@ bool Literal::Opposite(const Literal * lit) const
 //
 //------------------------------
 //******************************
+unsigned int Literal::getIdentifier() const
+{
+	return (unsigned int)(void *)this;
+}
+int Literal::getValue() const
+{
+	return this->Value;
+}
 bool Literal::GetType() const
 {
 	return this->Value > 0;
 }
-bool Literal::IsActive() const
+const Clause * Literal::getClause() const
 {
-	return this->isActive;
+	return this->clause;
 }
-unsigned int Literal::IntialClauseSize() const
+const Variable * Literal::getVariable() const
 {
-	assert(this->clause != NULL);
-	assert(this->clause->Contains(this));
-	assert(this->clause->IntialSize());
-	return this->clause->IntialSize();
+	return this->variable;
 }
 unsigned int Literal::ClauseSize() const
 {
@@ -135,73 +129,6 @@ unsigned int Literal::ClauseSize() const
 	assert(this->clause->Contains(this));
 	assert(this->clause->Size());
 	return this->clause->Size();
-}
-
-bool Literal::IsEvaluted() const
-{
-	assert(this->variable != NULL);
-	assert(!this->variable->IsEvaluated() || this->variable->GetValue() == this->Value || this->variable->GetValue() == (-1 * this->Value));
-	return this->variable->IsEvaluated();
-}
-bool Literal::IsTrue() const
-{
-	assert(this->variable != NULL);
-	assert(!this->variable->IsEvaluated() || this->variable->GetValue() == this->Value || this->variable->GetValue() == (-1 * this->Value));
-	return this->variable->IsEvaluated() && this->variable->GetValue() == this->Value;
-}
-bool Literal::IsFalse() const
-{
-	assert(this->variable != NULL);
-	assert(!this->variable->IsEvaluated() || this->variable->GetValue() == this->Value || this->variable->GetValue() == (-1 * this->Value));
-	return this->variable->IsEvaluated() && this->variable->GetValue() != this->Value;
-}
-//******************************
-//------------------------------
-//
-// MODIFIERS
-//
-//------------------------------
-//******************************
-void Literal::Undo()
-{
-	assert(this->clause != NULL);
-	assert(this->clause->Contains(this));
-	this->clause->Undo();
-	assert(this->clause->IsActive() == this->IsActive());
-}
-
-void Literal::ReAddToVariable()
-{
-	assert(this->variable != NULL);
-	if(!this->isActive)
-	{
-		this->variable->Add(this->listPointer);
-	}
-}
-
-void Literal::RemoveFromClause()
-{
-	assert(this->clause != NULL);
-	assert(this->clause->Contains(this));
-	this->clause->Remove();
-	assert(!this->IsActive());
-}
-
-void Literal::RemoveFromVariable()
-{
-	assert(this->variable != NULL);
-	if(this->isActive)
-	{
-		this->variable->Subtract(this->listPointer);
-	}
-	assert(!this->IsActive());
-}
-
-void Literal::SetListPointer(list <Literal *>::const_iterator lit, bool isActive)
-{
-	assert(*lit == this);
-	this->listPointer = lit;
-	this->isActive = isActive;
 }
 
 //******************************

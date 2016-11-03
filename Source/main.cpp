@@ -1,3 +1,11 @@
+#ifdef WIN32
+#include <Windows.h>
+#else
+#include <sys/time.h>
+#include <ctime>
+#endif
+
+#include <chrono>
 #include <string>
 #include <list>
 #include <iostream>
@@ -5,27 +13,41 @@
 #include <sstream>
 
 #include "SAT.h"
+#include "SATState.h"
 #include "SATSolver.h"
+#include "Constants.h"
+
+#ifdef DEPTH_SAT
+#include "DepthSolver.h"
+#endif
+#ifdef BOTTOM_ANALYZE_SAT
+#include "BottomSolver.h"
+#endif
 
 //For checking that all output is correct
 #include <assert.h>
 
 //Memory leak detection
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
 #include "Debug.h"
-
-#ifdef _DEBUG
-#define new DEBUG_CLIENTBLOCK
-#endif
-
-#define PARALLEL
-//#define COMPLETE
 
 using namespace std;
 
-void CNFTest(char * perfix, unsigned int start, unsigned int end, ofstream & file, ofstream & out, int result)
+class Timer
+{
+public:
+    Timer() : beg_(clock_::now()) {}
+    void reset() { beg_ = clock_::now(); }
+    double elapsed() const { 
+        return std::chrono::duration_cast<second_>
+            (clock_::now() - beg_).count(); }
+
+private:
+    typedef std::chrono::high_resolution_clock clock_;
+    typedef std::chrono::duration<double, std::ratio<1> > second_;
+    std::chrono::time_point<clock_> beg_;
+};
+
+void CNFTest(char * perfix, unsigned int start, unsigned int end, ofstream & file, ofstream & out, ofstream & solutions, int result)
 {
 	unsigned int False = 0;
 	unsigned int Unknown = 0;
@@ -38,287 +60,334 @@ void CNFTest(char * perfix, unsigned int start, unsigned int end, ofstream & fil
 	unsigned long long Falses = 0xFFFFFFFFFFFFFFFF;
 	unsigned long long TrueAndFalses = 0xFFFFFFFFFFFFFFFF;
 	unsigned long long All = 0xFFFFFFFFFFFFFFFF;
+	Timer * totalTimer = new Timer();
+	Timer * timer = new Timer();
 
 	for (unsigned int i = start; i <= end; i++)
 	{
+		totalTimer->reset();
+
+		double compileTime = 0;
+		double analyzeTime = 0;
+		double solveTime = 0;
+		double outputTime = 0;
+		double cleanTime = 0;
+		double totalTime = 0;
+
 		stringstream ss;
 		ss << perfix;
 		ss << i;
 		ss << ".cnf";
 
-		SAT s(ss.str().c_str(), true);
-		assert(s.isValid());
-		SATSolver solve(&s);
+		cout << i << ":(Compiling)";
+		cout.flush();
+		timer->reset();
+		SAT * sat = new SAT(ss.str().c_str(), true);
+		compileTime = timer->elapsed();
+		assert(sat->isValid());
 
+		cout << "(Analyzing)";
+		cout.flush();
+
+		timer->reset();
+		SATSolver * solver = new SATSolver();
+		analyzeTime = timer->elapsed();
 		out << dec << i << ",";
+		cout << "(Solving)";
+		cout.flush();
 
-#ifdef COMPLETE
+		timer->reset();
+		void * variable = VARIABLE_CREATOR(sat, 0, SET_SIZE, NULL);
 #ifdef PARALLEL
-		ReturnValue output = solve.ParallelSolveTruth(out);
+		solver->runSolverParallel(sat, SET_SIZE, variable, &VARIABLE_CREATOR, &SOLVER);
 #else
-		ReturnValue output = solve.SolveTruth(out);
+		solver->runSolver(sat, variable, SOLVER);
 #endif
-		s.Revert();
-		out << result;
-		out << "," << s.VariableCount();
-		out << "," << s.ClauseCount();
-		out << "," << ss.str();
-		s.cleanVariables();
-		s.cleanClauses();
-		for (list<list<int> *>::const_iterator iter = output.Result->cbegin(); iter != output.Result->cend(); iter++)
-		{
-			out << ",(|";
-			for (list<int>::const_iterator list = (*iter)->cbegin(); list != (*iter)->cend(); list++)
-			{
-				out << (*list) << "|";
-			}
-			out << ")";
-			delete (*iter);
-		}
-		delete output.Result;
-		out << endl;
-		if (output.Trues != 0)
-		{
-			cout << i << ": True" << endl;
-			True++;
-		}
-#ifndef DEPTH
-		else if(output.Unknowns != 0)
-		{
-			cout << i << ": Unknown" << endl;
-			Unknown++;
-		}
-#else
-		else if (output.Falses == 0)
-		{
-			cout << i << ": Unknown" << endl;
-			Unknown++;
-		}
-#endif
-		else
-		{
-			cout << i << ": False" << endl;
-			False++;
-		}
-		Trues = Trues & output.Trues;
-		TrueAndUnknowns = TrueAndUnknowns & (output.Trues | output.Unknowns);
-		TrueAndFalses = TrueAndFalses & (output.Trues | output.Falses);
-		Unknowns = Unknowns & output.Unknowns;
-		FalseAndUnknowns = FalseAndUnknowns & (output.Unknowns | output.Falses);
-		Falses = Falses & output.Falses;
-		All = All & (output.Trues | output.Unknowns | output.Falses);
-	}
+		solveTime = timer->elapsed();
+		cout << "(Outtputing): ";
+		cout.flush();
+		timer->reset();
+		Solution * output = &solver->analysisResults(out, &ANALYZER);
 
-	file
-		<< "Results" << endl
-		<< "True    (" << True << ")" << endl
-		<< "Unknown (" << Unknown << ")" << endl
-		<< "False   (" << False << ")" << endl
-		<< endl
-		<< "Statisitics" << endl
-		<< "T  : 0x" << hex << (Trues) << endl
-		<< "TU : 0x" << hex << (TrueAndUnknowns & (All ^ Unknowns) & (All ^ Trues)) << endl
-		<< "U  : 0x" << hex << (Unknowns) << endl
-		<< "FU : 0x" << hex << (FalseAndUnknowns & (All ^ Unknowns) & (All ^ Falses)) << endl
-		<< "F  : 0x" << hex << (Falses) << endl
-		<< "TF : 0x" << hex << (TrueAndFalses & (All ^ Trues) & (All ^ Falses)) << endl
-		<< "A  : 0x" << hex << (All & (All ^ TrueAndFalses) & (All ^ FalseAndUnknowns) & (All ^ TrueAndUnknowns)) << endl
-		<< endl
-		<< "Variables" << endl
-		<< "T  : 0x" << hex << (Trues) << endl
-		<< "TU : 0x" << hex << (TrueAndUnknowns) << endl
-		<< "U  : 0x" << hex << (Unknowns) << endl
-		<< "FU : 0x" << hex << (FalseAndUnknowns) << endl
-		<< "F  : 0x" << hex << (Falses) << endl
-		<< "TF : 0x" << hex << (TrueAndFalses) << endl
-		<< "A  : 0x" << hex << (All) << endl
-		<< endl
-		<< dec;
-#else
-#ifdef PARALLEL
-		list<list<int> *> * output = solve.ParallelStopAtFirstTruth(out);
-#else
-		list<list<int> *> * output = solve.StopAtFirstTruth(out);
-#endif
-		s.Revert();
 		out << result;
-		out << "," << s.VariableCount();
-		out << "," << s.ClauseCount();
+		out << "," << sat->VariableCount();
+		out << "," << sat->ClauseCount();
 		out << "," << ss.str();
-		s.cleanVariables();
-		s.cleanClauses();
-		if (output == NULL) {
-			out << ",(UNKNOWN)";
-			cout << i << ": Unknown" << endl;
+
+		solutions << i;
+		solutions << "," << result;
+		solutions << "," << output->solved;
+		solutions << "," << sat->VariableCount();
+		solutions << "," << sat->ClauseCount();
+		solutions << "," << ss.str();
+		if (output->solved == NOT_COMPLETED || output->solved == COMPLETED_UNKNOWN)
+		{
+			out << ",(UNKNOWN),0";
+			solutions << ",(UNKNOWN),0";
+			cout << "Unknown";
+			cout.flush();
 		}
-		else if (output->size() < 1) {
-			out << ",(FALSE)";
-			cout << i << ": False" << endl;
+		else if (output->solved == COMPLETED_NO_SOLUTION || output->solved == NOT_COMPLETED_NO_SOLUTION)
+		{
+			out << ",(FALSE),0";
+			solutions << ",(FALSE),0";
+			cout << "False";
+			cout.flush();
 		}
-		else {
-			cout << i << ": True" << endl;
-			out << "," << output->size();
-			for (list<list<int> *>::const_iterator iter = output->cbegin(); iter != output->cend(); iter++)
+		else 
+		{
+			out << ",(TRUE)";
+			solutions << ",(TRUE)";
+			cout << "True";
+			cout.flush();
+
+			if (output->solutions != NULL)
 			{
-				out << ",(" << (*iter)->size() << ")(|";
-				for (list<int>::const_iterator list = (*iter)->cbegin(); list != (*iter)->cend(); list++)
+				out << "," << output->solutions->size();
+				solutions << "," << output->solutions->size();
+				for (list<const int *>::const_iterator iter = output->solutions->cbegin(); iter != output->solutions->cend(); iter++)
 				{
-					out << (*list) << "|";
+					solutions << ",(" << (*iter)[0] << ")(|";
+					assert((*iter)[(*iter)[0] + 1] == NULL);
+					for (int i = 1; i < ((*iter)[0] + 1); i++)
+					{
+						solutions << (*iter)[i] << "|";
+					}
+					solutions << ")";
 				}
-				out << ")";
-				delete (*iter);
+			}
+			else
+			{
+				out << "," << 0;
+				solutions << "," << 0;
 			}
 		}
-		out << endl;
+		solutions << endl;
+		solutions.flush();
+
+		outputTime = timer->elapsed();
+		out << ",(Compile Time: " << compileTime << ")"
+			<< ",(Analyze Time: " << analyzeTime << ")"
+			<< ",(Solve Time: " << solveTime << ")"
+			<< ",(Output Time: " << outputTime << ")";
+		out.flush();
+
+		cout << " :(Cleaning)";
+		cout.flush();
+
+		timer->reset();
+		solver->cleanSolution();
+		cleanTime = timer->elapsed();
+		totalTime = totalTimer->elapsed();
+		out << ",(Clean Time: " << cleanTime << ")"
+			<< ",(Total Time: " << totalTime << ")"
+			<< endl;
+		out.flush();
+
+		cout << "(" << totalTime << ")" << endl;
+		cout.flush();
+
 		delete output;
+		delete solver;
+		delete sat;
 	}
-#endif
+	delete totalTimer;
+	delete timer;
 }
 
-void InputTest(char * fileName, ofstream & out, int result)
+void InputTest(char * fileName, ofstream & out, ofstream & solutions, int result)
 {
 	ifstream file;
 	file.open(fileName);
+	Timer * totalTimer = new Timer();
+	Timer * timer = new Timer();
 	for (unsigned int i = 1; !file.eof(); i++)
 	{
-		SAT s(file, false);
-		if (s.ClauseCount() == 0) {
+		totalTimer->reset();
+
+		double compileTime = 0;
+		double analyzeTime = 0;
+		double solveTime = 0;
+		double outputTime = 0;
+		double cleanTime = 0;
+		double totalTime = 0;
+
+		cout << i << ":(Compiling)";
+		cout.flush();
+		timer->reset();
+		SAT * sat = new SAT(file, false);
+		compileTime = timer->elapsed();
+		if (!sat->isValid())
+		{
+			cout << "(Invalid)" << endl;
+			delete sat;
 			break;
 		}
-		SATSolver solve(&s);
-		out << i << ",";
 
-#ifdef COMPLETE
+		cout << "(Analyzing)";
+		cout.flush();
+
+		timer->reset();
+		SATSolver * solver = new SATSolver();
+		analyzeTime = timer->elapsed();
+		out << dec << i << ",";
+		cout << "(Solving)";
+		cout.flush();
+
+		timer->reset();
+		void * variable = VARIABLE_CREATOR(sat, 0, SET_SIZE, NULL);
 #ifdef PARALLEL
-		ReturnValue output = solve.ParallelSolveTruth(out);
+		solver->runSolverParallel(sat, SET_SIZE, variable, &VARIABLE_CREATOR, &SOLVER);
 #else
-		ReturnValue output = solve.SolveTruth(out);
+		solver->runSolver(sat, variable, SOLVER);
 #endif
-		s.Revert();
+		solveTime = timer->elapsed();
+		cout << "(Outtputing): ";
+		cout.flush();
+		timer->reset();
+		Solution * output = &solver->analysisResults(out, &ANALYZER);
+
 		out << result;
-		out << "," << s.VariableCount();
-		out << "," << s.ClauseCount();
-		s.cleanVariables();
-		s.cleanClauses();
-		for (list<list<int> *>::const_iterator iter = output.Result->cbegin(); iter != output.Result->cend(); iter++)
+		out << "," << sat->VariableCount();
+		out << "," << sat->ClauseCount();
+
+		solutions << i;
+		solutions << "," << result;
+		solutions << "," << output->solved;
+		solutions << "," << sat->VariableCount();
+		solutions << "," << sat->ClauseCount();
+		if (output->solved == NOT_COMPLETED || output->solved == COMPLETED_UNKNOWN)
 		{
-			out << ",(|";
-			for (list<int>::const_iterator list = (*iter)->cbegin(); list != (*iter)->cend(); list++)
-			{
-				out << (*list) << "|";
-			}
-			out << ",)";
-			delete (*iter);
+			out << ",(UNKNOWN),0";
+			solutions << ",(UNKNOWN),0";
+			cout << "Unknown";
+			cout.flush();
 		}
-		delete output.Result;
-		out << endl;
-		if (output.Trues != 0)
+		else if (output->solved == COMPLETED_NO_SOLUTION || output->solved == NOT_COMPLETED_NO_SOLUTION)
 		{
-			cout << "True" << endl;
+			out << ",(FALSE),0";
+			solutions << ",(FALSE),0";
+			cout << "False";
+			cout.flush();
 		}
-#ifndef DEPTH
-		else if (output.Unknowns != 0)
+		else 
 		{
-			cout << "Unknown" << endl;
-		}
-#else
-		else if (output.Falses == 0)
-		{
-			cout << "Unknown" << endl;
-		}
-#endif
-		else
-		{
-			cout << "False" << endl;
-		}
-#else
-#ifdef PARALLEL
-		list<list<int> *> * output = solve.ParallelStopAtFirstTruth(out);
-#else
-		list<list<int> *> * output = solve.StopAtFirstTruth(out);
-#endif
-		s.Revert();
-		out << result;
-		out << "," << s.VariableCount();
-		out << "," << s.ClauseCount();
-		s.cleanVariables();
-		s.cleanClauses();
-		cout << i << ": ";
-		if (output == NULL) {
-			out << ",(UNKNOWN)";
-			cout << "Unknown" << endl;
-		}
-		else if (output->size() < 1) {
-			out << ",(FALSE)";
-			cout << "False" << endl;
-		}
-		else {
+			out << ",(TRUE)";
+			solutions << ",(TRUE)";
 			cout << "True";
-			out << "," << output->size();
-			cout << "," << output->size();
-			for (list<list<int> *>::const_iterator iter = output->cbegin(); iter != output->cend(); iter++)
+			cout.flush();
+
+			if (output->solutions != NULL)
 			{
-				out << ",(" << (*iter)->size() << ")(|";
-				cout << ",(" << (*iter)->size() << ")(|";
-				for (list<int>::const_iterator list = (*iter)->cbegin(); list != (*iter)->cend(); list++)
+				out << "," << output->solutions->size();
+				solutions << "," << output->solutions->size();
+				for (list<const int *>::const_iterator iter = output->solutions->cbegin(); iter != output->solutions->cend(); iter++)
 				{
-					out << (*list) << "|";
-					cout << (*list) << "|";
+					solutions << ",(" << (*iter)[0] << ")(|";
+					assert((*iter)[(*iter)[0] + 1] == NULL);
+					for (int i = 1; i < ((*iter)[0] + 1); i++)
+					{
+						solutions << (*iter)[i] << "|";
+					}
+					solutions << ")";
 				}
-				out << ")";
-				cout << ")";
-				delete (*iter);
 			}
-			cout << endl;
+			else
+			{
+				out << "," << 0;
+				solutions << "," << 0;
+			}
 		}
-		out << endl;
+		solutions << endl;
+		solutions.flush();
+
+		outputTime = timer->elapsed();
+		out << ",(Compile Time: " << compileTime << ")"
+			<< ",(Analyze Time: " << analyzeTime << ")"
+			<< ",(Solve Time: " << solveTime << ")"
+			<< ",(Output Time: " << outputTime << ")";
+		out.flush();
+
+		cout << " :(Cleaning)";
+		cout.flush();
+
+		timer->reset();
+		solver->cleanSolution();
+		cleanTime = timer->elapsed();
+		totalTime = totalTimer->elapsed();
+		out << ",(Clean Time: " << cleanTime << ")"
+			<< ",(Total Time: " << totalTime << ")"
+			<< endl;
+		out.flush();
+
+		cout << "(" << totalTime << ")" << endl;
+		cout.flush();
+
 		delete output;
-#endif
+		delete solver;
+		delete sat;
 	}
+	delete totalTimer;
+	delete timer;
 	file.close();
 }
 
 int main(int argc, char * argv[])
 {
 	ofstream out;
+	ofstream solutions;
 	out.open("InputOut.csv");
+	solutions.open("InputSolutions.csv");
 
-	InputTest("Input.txt", out, 1);
+	InputTest("Input.txt", out, solutions, 1);
 
 	out.close();
+	solutions.close();
 	system("pause");
 
 	ofstream file;
 	file.open("Output.txt");
 	out.open("CNFOut.csv");
+	solutions.open("CNFSolutions.csv");
 
 #ifdef _DEBUG
 	file << "uf20" << endl;
-	CNFTest("uf20\\uf20-0", 1, 5, file, out, 1);
+	CNFTest("uf20\\uf20-0", 1, 5, file, out, solutions, 1);
+
+	file << "uf50" << endl;
+	CNFTest("uf50\\uf50-0", 1, 2, file, out, solutions, 1);
+
+	file << "uuf50" << endl;
+	CNFTest("uuf50\\uuf50-0", 1, 2, file, out, solutions, -1);
 #else
-	//file << "uf20" << endl;
-	//CNFTest("uf20\\uf20-0", 1, 1000, file, out, 1);
+	file << "comp" << endl;
+	CNFTest("comp\\comp-0", 1, 1, file, out, solutions, 1);
 
-	//file << "uf50" << endl;
-	//CNFTest("uf50\\uf50-0", 1, 1000, file, out, 1);
+	file << "uf20" << endl;
+	CNFTest("uf20\\uf20-0", 1, 1000, file, out, solutions, 1);
 
-	//file << "uuf50" << endl;
-	//CNFTest("uuf50\\uuf50-0", 1, 1000, file, out, -1);
+	file << "uf50" << endl;
+	CNFTest("uf50\\uf50-0", 1, 1000, file, out, solutions, 1);
 
-	//file << "uf75" << endl;
-	//CNFTest("uf75\\uf75-0", 1, 100, file, out, 1);
+	file << "uuf50" << endl;
+	CNFTest("uuf50\\uuf50-0", 1, 1000, file, out, solutions, -1);
 
-	//file << "uuf75" << endl;
-	//CNFTest("uuf75\\uuf75-0", 1, 100, file, out, -1);
+	file << "uf75" << endl;
+	CNFTest("uf75\\uf75-0", 1, 100, file, out, solutions, 1);
 
+	file << "uuf75" << endl;
+	CNFTest("uuf75\\uuf75-0", 1, 100, file, out, solutions, -1);
+	
 	file << "uf100" << endl;
-	CNFTest("uf100\\uf100-0", 2, 1000, file, out, 1);
+	CNFTest("uf100\\uf100-0", 1, 1000, file, out, solutions, 1);
 
 	file << "uuf100" << endl;
-	CNFTest("uuf100\\uuf100-0", 1, 1000, file, out, -1);
+	CNFTest("uuf100\\uuf100-0", 1, 1000, file, out, solutions, -1);
 #endif
 
 	out.close();
+	solutions.close();
+	system("pause");
 
 	_CrtDumpMemoryLeaks();
 }
