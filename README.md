@@ -8,3 +8,4 @@ In most of my tests of 100 variables, it would find the solution or that the sol
 I had added a bunch of different functions it would go through, in order to determine which was faster.
 I also added many #define to quickly set how you wanted the program to run.
 This program was in no way optimized for parralization, as I only use multi-threading to test multiple methods at once.
+This program also has the option to find all solutions, rather than just a single solution, which in most cases completes in about the same amount of time.
