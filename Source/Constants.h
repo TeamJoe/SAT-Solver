@@ -20,8 +20,8 @@
 		//#define ORGINAL_SET 8
 		//#define SECONDARY_SET 16
 		//#define THIRD_SET 8
-		#define FOURTH_SET 16
-		#define SET_SIZE 11
+		#define FOURTH_SET 7
+		#define SET_SIZE 7
 	#endif
 #else 
 	#define MAX_DEPTH_LIMIT 0
