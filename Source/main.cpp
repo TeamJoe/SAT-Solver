@@ -360,8 +360,8 @@ int main(int argc, char * argv[])
 	file << "uuf50" << endl;
 	CNFTest("uuf50\\uuf50-0", 1, 2, file, out, solutions, -1);
 #else
-	file << "comp" << endl;
-	CNFTest("comp\\comp-0", 1, 1, file, out, solutions, 1);
+	/*file << "comp" << endl;
+	CNFTest("comp\\comp-0", 1, 1, file, out, solutions, 1);*/
 
 	file << "uf20" << endl;
 	CNFTest("uf20\\uf20-0", 1, 1000, file, out, solutions, 1);

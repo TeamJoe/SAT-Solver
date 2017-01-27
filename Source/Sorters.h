@@ -4,6 +4,7 @@
 
 using namespace std;
 
+const VariableState * HasSolution(const VariableState * v1, const VariableState * v2);
 const VariableState * LeastTotalUsed(const VariableState * v1, const VariableState * v2);
 const VariableState * MostTotalUsed(const VariableState * v1, const VariableState * v2);
 const VariableState * LeastDifference(const VariableState * v1, const VariableState * v2);
@@ -36,7 +37,12 @@ const VariableState * MostLargestPositiveClauseSize(const VariableState * v1, co
 const VariableState * LeastLargestPositiveClauseSize(const VariableState * v1, const VariableState * v2);
 const VariableState * MostLargestPositiveClauseCount(const VariableState * v1, const VariableState * v2);
 const VariableState * LeastLargestPositiveClauseCount(const VariableState * v1, const VariableState * v2);
+const VariableState * MostClauseCountSmallestToLargest(const VariableState * v1, const VariableState * v2);
+const VariableState * MostClauseCountLargestToSmallest(const VariableState * v1, const VariableState * v2);
+const VariableState * LeastClauseCountSmallestToLargest(const VariableState * v1, const VariableState * v2);
+const VariableState * LeastClauseCountLargestToSmallest(const VariableState * v1, const VariableState * v2);
 
+bool HasSolutionCompare(const VariableState * v1, const VariableState * v2);
 bool TotalUsed(const VariableState * v1, const VariableState * v2);
 bool LargeUsed(const VariableState * v1, const VariableState * v2);
 bool Difference(const VariableState * v1, const VariableState * v2);
@@ -53,6 +59,7 @@ bool SmallestPositiveClauseSize(const VariableState * v1, const VariableState * 
 bool SmallestPositiveClauseCount(const VariableState * v1, const VariableState * v2);
 bool LargestPositiveClauseSize(const VariableState * v1, const VariableState * v2);
 bool LargestPositiveClauseCount(const VariableState * v1, const VariableState * v2);
+bool AllClauseCounts(const VariableState * v1, const VariableState * v2);
 
 int DefaultSolver(const VariableState * v);
 int FlipSatSolver(const VariableState * v);
@@ -93,5 +100,10 @@ static SortFunction AllFunctions[] =
 	{ LargestPositiveClauseCount, MostLargestPositiveClauseCount }, //28
 	{ LargestPositiveClauseCount, LeastLargestPositiveClauseCount }, //29
 	{ TotalUsed, MostTotalUsed }, //30
-	{ TotalUsed, LeastTotalUsed } //31
+	{ TotalUsed, LeastTotalUsed }, //31
+	{ AllClauseCounts, MostClauseCountSmallestToLargest }, //32
+	{ AllClauseCounts, MostClauseCountLargestToSmallest }, //33
+	{ AllClauseCounts, LeastClauseCountSmallestToLargest }, //34
+	{ AllClauseCounts, LeastClauseCountLargestToSmallest }, //35
+	{ HasSolutionCompare, HasSolution } //36
 };
