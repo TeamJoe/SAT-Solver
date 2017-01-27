@@ -14,14 +14,25 @@
 //
 //------------------------------
 //******************************
+const VariableState * HasSolution(const VariableState * v1, const VariableState * v2)
+{
+	if (v1->hasSolution()) {
+		return v2;
+	} else {
+		return v1;
+	}
+}
+
 const VariableState * LeastTotalUsed(const VariableState * v1, const VariableState * v2)
 {
 	return v1->getTotalNumber() < v2->getTotalNumber() ? v1 : v2;
 }
+
 const VariableState * MostTotalUsed(const VariableState * v1, const VariableState * v2)
 {
 	return v1->getTotalNumber() > v2->getTotalNumber() ? v1 : v2;
 }
+
 const VariableState * LeastDifference(const VariableState * v1, const VariableState * v2)
 {
 	if (v1->getDifference() > 0 && v2->getDifference() > 0)
@@ -179,10 +190,75 @@ const VariableState * LeastLargestPositiveClauseCount(const VariableState * v1, 
 //******************************
 //------------------------------
 //
+// More Complex Functions
+//
+//------------------------------
+//******************************
+const VariableState * MostClauseCountSmallestToLargest(const VariableState * v1, const VariableState * v2)
+{
+	unsigned int size = v1->getLargestClauseSize() < v2->getLargestClauseSize() ? v2->getLargestClauseSize() : v1->getLargestClauseSize();
+	for (unsigned int i = 1; i < size; i++)
+	{
+		unsigned int c1 = v1->getNegativeClauseCount(i) + v1->getPositiveClauseCount(i);
+		unsigned int c2 = v2->getNegativeClauseCount(i) + v2->getPositiveClauseCount(i);
+		if (c1 < c2) {
+			return v2;
+		} else if (c1 > c2) {
+			return v1;
+		}
+	}
+	// TODO: Should say here that they are equal
+	return v1;
+}
+
+const VariableState * MostClauseCountLargestToSmallest(const VariableState * v1, const VariableState * v2)
+{
+	unsigned int size = v1->getLargestClauseSize() < v2->getLargestClauseSize() ? v2->getLargestClauseSize() : v1->getLargestClauseSize();
+	for (unsigned int i = size; i > 0; i--)
+	{
+		unsigned int c1 = v1->getNegativeClauseCount(i) + v1->getPositiveClauseCount(i);
+		unsigned int c2 = v2->getNegativeClauseCount(i) + v2->getPositiveClauseCount(i);
+		if (c1 < c2) {
+			return v2;
+		} else if (c1 > c2) {
+			return v1;
+		}
+	}
+	// TODO: Should say here that they are equal
+	return v1;
+}
+
+const VariableState * LeastClauseCountSmallestToLargest(const VariableState * v1, const VariableState * v2)
+{
+	const VariableState * v = MostClauseCountSmallestToLargest(v1, v2);
+	if (v == v1) {
+		return v2;
+	} else {
+		return v1;
+	}
+}
+
+const VariableState * LeastClauseCountLargestToSmallest(const VariableState * v1, const VariableState * v2)
+{
+	const VariableState * v = MostClauseCountLargestToSmallest(v1, v2);
+	if (v == v1) {
+		return v2;
+	} else {
+		return v1;
+	}
+}
+
+//******************************
+//------------------------------
+//
 // Equaility Functions
 //
 //------------------------------
 //******************************
+bool HasSolutionCompare(const VariableState * v1, const VariableState * v2)
+{
+	return v1->hasSolution() && v2->hasSolution();
+}
 
 bool TotalUsed(const VariableState * v1, const VariableState * v2)
 {
@@ -264,6 +340,27 @@ bool LargestPositiveClauseCount(const VariableState * v1, const VariableState * 
 	return v1->getLargestPositiveClauseCount() == v2->getLargestPositiveClauseCount();
 }
 
+//******************************
+//------------------------------
+//
+// More Complex Functions
+//
+//------------------------------
+//******************************
+bool AllClauseCounts(const VariableState * v1, const VariableState * v2)
+{
+	unsigned int size = v1->getLargestClauseSize() < v2->getLargestClauseSize() ? v2->getLargestClauseSize() : v1->getLargestClauseSize();
+	for (unsigned int i = 1; i < size; i++)
+	{
+		unsigned int c1 = v1->getNegativeClauseCount(i) + v1->getPositiveClauseCount(i);
+		unsigned int c2 = v2->getNegativeClauseCount(i) + v2->getPositiveClauseCount(i);
+		if (c1 != c2) {
+			return false;
+		}
+	}
+	return true;
+}
+
 
 //******************************
 //------------------------------
@@ -286,7 +383,6 @@ int DefaultSolver(const VariableState * v)
 	{
 		return MUST_POSITIVE;
 	}
-#ifdef END_ON_FIRST_SOLUTION
 	else if (v->getNegativesSize() == 0)
 	{
 		return MUST_POSITIVE;
@@ -295,16 +391,15 @@ int DefaultSolver(const VariableState * v)
 	{
 		return MUST_NEGATIVE;
 	}
-#endif
-	else if (v->getPositivesSize() == v->getNegativesSize())
-	{
-		return VARIABLE_UNKNOWN;
-	}
-	else
+	else if (v->getPositivesSize() != v->getNegativesSize())
 	{
 		return v->getPositivesSize() > v->getNegativesSize()
 			? VARIABLE_POSITIVE
 			: VARIABLE_NEGATIVE;
+	}
+	else
+	{
+		return VARIABLE_UNKNOWN;
 	}
 }
 int FlipSatSolver(const VariableState * v)

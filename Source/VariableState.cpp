@@ -326,9 +326,13 @@ int VariableState::getValue() const
 }
 bool VariableState::hasSolution() const
 {
+	/* Slower? */
+	/*
 	int smallestNegative = this->getSmallestNegativeClauseSize();
 	int smallestPositive = this->getSmallestPositiveClauseSize();
 	return (smallestNegative != 0 && smallestPositive != 0 && !(smallestNegative == 1 && smallestPositive == 1));
+	*/
+	return (getNegativeClauseCount(0) == 0 && getPositiveClauseCount(0) == 0 && (getNegativeClauseCount(1) == 0 || getPositiveClauseCount(1) == 0));
 }
 
 //-------------------------------
