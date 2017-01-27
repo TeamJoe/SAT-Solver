@@ -227,12 +227,10 @@ list<int *> * GetSortList()
 	*/
 	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 4, 0)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, MostDifference, MostLargeUsed
 	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 4, 1)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, MostDifference, LeastLargeUsed
-	/*
 	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 5, 0)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, LeastDifference, MostLargeUsed
 	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 5, 1)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, LeastDifference, LeastLargeUsed
 	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 0, 4)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, MostLargeUsed, MostDifference
 	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 1, 4)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, LeastLargeUsed, MostDifference
-	*/
 	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 0, 5)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, MostLargeUsed, LeastDifference
 	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 1, 5)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount,  LeastLargestClauseSize, LeastLargestClauseCount, MostTotalUsed, LeastLargeUsed, LeastDifference
 #endif
