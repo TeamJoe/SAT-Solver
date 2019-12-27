@@ -17,3 +17,44 @@ Output file is listed in the following:
 Count_in_the_File, Program_Result(N) (Program_Variable_Tries(N)) (Program_Solutions_Found(N)), Program_Result, Variable_Count, Clause_Count, File_Location, Program_Result, Number_of_Results_Found, Compile_Time (Time to read the file), Analyze_Time (PreSolutioning time), Solve_Time (Time it actually spent solving), Clean_Time (Time is spent cleaning up) Total_Time (The actually time it took to run from start to finish)
 
 You can get more SAT files in CNF format here: http://www.satcompetition.org/
+
+
+-----------------
+Some fun math stuff (Number of unique clauses):
+
+2-SAT
+ab
+1
+ab | ac bc
+1 2
+ab | ac bc | ad bd cd
+1 2 3
+Max Clauses -> 2^2 * ∑(1,v)x = 2^2/2! * v(v+1)
+2^2 is added for the differnet possible binary combinations
+
+3-SAT
+abc
+1
+abc | abd acd | bcd
+1 2 1
+abc | abd acd | abe ace ade | bcd | bce bde | cde
+1 2 3 1 2 1
+Max Clauses -> 2^3 * ∑(1,v)∑(1,x)y = 2^3/3! * v(v+1)(v+2)
+2^3 is added for the differnet possible binary combinations
+
+4-SAT
+abcd
+1
+abcd | abce abde acde | bcde
+1 3 1
+abcd | abce abde acde | abcf abdf acdf abef acef adef | bcde | bcdf bdef bcef | cdef
+1 3 6 1 3 1
+Max Clauses -> 2^4 * ∑(1,v)∑(1,x)∑(1,y)z = 2^4/4! * v(v+1)(v+2)(v+3)
+2^4 is added for the differnet possible binary combinations
+
+N-SAT
+Max Clauses -> 2^N/N! ∏(1,N)(v+N-x) = 2^N/N! * v(v + N -1)!/v! =  2^N/N! * (v + N -1)!/(v-1)!
+
+SAT
+(Max caluse size has to be <= v), So
+Max Clauses -> ∑(1,v) 2^x/x! * (v + x -1)!/(v-1)!
