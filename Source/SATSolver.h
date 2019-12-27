@@ -1,64 +1,65 @@
-class SAT;
 class SATSolver;
-class SATSolverState;
-struct ReturnValue;
-struct Solution;
 
-#include <ostream>
+#ifndef SATSOLVER_H
+#define SATSOLVER_H
+
 #include <fstream>
 
-using namespace std;
-
-typedef void * (*SolverCreator)(const SAT * sat, const unsigned int currentCount, const unsigned int totalCount, const void * variables);
-typedef ReturnValue * (*SolverFunction)(SATSolver * solver, SATSolverState * solverState, void * variables);
-typedef void (*AnalysisFunction)(ofstream & file, const ReturnValue * value);
-
-#ifndef SAT_SOLVER_H
-#define SAT_SOLVER_H
-
-#include <thread>
-
 #include "SAT.h"
-#include "SATSolverState.h"
-
-#include "Constants.h"
 
 using namespace std;
+
+#define DEPTH
+//#define DEPTH_USES_FLIP
+#define DEPTH_FULL_EVAL
+//#define FLIP
+//#define FAST
+
+//#define ORGINAL_SET
+#define SECONDARY_SET
+
+#ifdef _DEBUG
+#define MAX_DEPTH_LIMIT 300
+#else
+#define MAX_DEPTH_LIMIT 100000000
+#endif
 
 struct ReturnValue
 {
-	list<const list <int> *> * solutions;
-	SATSolverState * state;
-	SolvedStates solved;
-	bool terminateRemaingThreads;
-	void * variables;
+	unsigned long long Trues;
+	unsigned long long Falses;
+	unsigned long long Unknowns;
+	list<list<int> *> * Result;
 };
 
-struct Solution
+struct Pair
 {
-	list<const list <int> *> * solutions;
-	SolvedStates solved;
+	bool Return;
+	list<int> * Result;
+	list<unsigned int> * Equalility;
+	list<unsigned int> * Undecidable;
+};
+
+struct DepthPair
+{
+	int Return;
+	unsigned long long EvalCount;
+	unsigned long long AttemptCount;
+	list<list<int> *> * Result;
 };
 
 class SATSolver
 {
 private:
-	thread ** threads;
-	const SAT * sat;
-	ReturnValue ** returnValues;
-	unsigned int totalThreads;
-protected:
-	void _runSolverParallel(SolverFunction solverFunction, const unsigned int currentThread, void * variables);
-	Solution * analysisResults(ofstream & file, AnalysisFunction analysisFunction);
+	SAT * sat;
 public:
-
-	//Constructors
-	SATSolver();
+	SATSolver(SAT * sat);
 	~SATSolver();
-
-	volatile bool isTerminatingAllThreads;
-	void terminateAllThreads();
-	Solution & runSolver(ofstream & file, const SAT * sat, void * variables, SolverFunction solverFunction, AnalysisFunction analysisFunction);
-	Solution & runSolverParallel(ofstream & file, const SAT * sat, const unsigned int threadCount, void * variables, SolverCreator solverCreator, SolverFunction solverFunction, AnalysisFunction analysisFunction);
+	//list <string> & SlowSat();
+	ReturnValue SolveTruth(ofstream & file) const;
+	ReturnValue ParallelSolveTruth(ofstream & file) const;
+	list<list<int> *> * ParallelStopAtFirstTruth(ofstream & file) const;
+	list<list<int> *> * StopAtFirstTruth(ofstream & file) const;
 };
+
 #endif
