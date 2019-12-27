@@ -40,7 +40,7 @@ abc | abd acd | bcd \
 abc | abd acd | abe ace ade | bcd | bce bde | cde \
 1 2 3 1 2 1 \
 Max Clauses -> 2^3 * ∑(1,v)∑(1,x)y = 2^3/3! * v(v+1)(v+2) \
-2^3 is added for the differnet possible binary combinations \
+2^3 is added for the differnet possible binary combinations
 
 4-SAT \
 abcd \
@@ -50,7 +50,7 @@ abcd | abce abde acde | bcde \
 abcd | abce abde acde | abcf abdf acdf abef acef adef | bcde | bcdf bdef bcef | cdef \
 1 3 6 1 3 1 \
 Max Clauses -> 2^4 * ∑(1,v)∑(1,x)∑(1,y)z = 2^4/4! * v(v+1)(v+2)(v+3) \
-2^4 is added for the differnet possible binary combinations \
+2^4 is added for the differnet possible binary combinations
 
 N-SAT \
 Max Clauses -> 2^N/N! ∏(1,N)(v+N-x) = 2^N/N! * v(v + N -1)!/v! =  2^N/N! * (v + N -1)!/(v-1)!
