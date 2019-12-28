@@ -117,16 +117,16 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 	assert(this->returnValues != NULL);
 
 	Solution * solution = new Solution;
-	solution->solved = NOT_COMPLETED;
+	solution->solved = SolvedStates::NOT_COMPLETED;
 	solution->solutions = NULL;
 	
 	for(unsigned int i = 0; i < this->totalThreads; i++)
 	{
 		//Adjust the solution variable
-		if (this->returnValues[i]->solved == NOT_COMPLETED_SOLUTION)
+		if (this->returnValues[i]->solved == SolvedStates::NOT_COMPLETED_SOLUTION)
 		{
-			assert(solution->solved != COMPLETED_NO_SOLUTION);
-			if (solution->solved != COMPLETED_SOLUTION)
+			assert(solution->solved != SolvedStates::COMPLETED_NO_SOLUTION);
+			if (solution->solved != SolvedStates::COMPLETED_SOLUTION)
 			{
 				if (solution->solutions == NULL)
 				{
@@ -142,10 +142,10 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 				solution->solved = this->returnValues[i]->solved;
 			}
 		}
-		else if (this->returnValues[i]->solved == COMPLETED_SOLUTION)
+		else if (this->returnValues[i]->solved == SolvedStates::COMPLETED_SOLUTION)
 		{
-			assert(solution->solved != COMPLETED_NO_SOLUTION);
-			if (solution->solved == COMPLETED_SOLUTION)
+			assert(solution->solved != SolvedStates::COMPLETED_NO_SOLUTION);
+			if (solution->solved == SolvedStates::COMPLETED_SOLUTION)
 			{
 				if (solution->solutions == NULL)
 				{
@@ -165,27 +165,27 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 			}
 			solution->solved = this->returnValues[i]->solved;
 		}
-		else if (this->returnValues[i]->solved == COMPLETED_NO_SOLUTION)
+		else if (this->returnValues[i]->solved == SolvedStates::COMPLETED_NO_SOLUTION)
 		{
 			assert(solution->solved != COMPLETED_SOLUTION && solution->solved != NOT_COMPLETED_SOLUTION);
 			assert(this->returnValues[i]->solutions == NULL || this->returnValues[i]->solutions->size() == 0);
 			solution->solved = this->returnValues[i]->solved;
 		}
-		else if (this->returnValues[i]->solved == NOT_COMPLETED_NO_SOLUTION || this->returnValues[i]->solved == COMPLETED_UNKNOWN)
+		else if (this->returnValues[i]->solved == SolvedStates::NOT_COMPLETED_NO_SOLUTION || this->returnValues[i]->solved == SolvedStates::COMPLETED_UNKNOWN)
 		{
 			assert(this->returnValues[i]->solutions == NULL || this->returnValues[i]->solutions->size() == 0);
-			if (solution->solved == NOT_COMPLETED)
+			if (solution->solved == SolvedStates::NOT_COMPLETED)
 			{
 				solution->solved = this->returnValues[i]->solved;
 			}
 		}
-		else if (this->returnValues[i]->solved == NOT_COMPLETED)
+		else if (this->returnValues[i]->solved == SolvedStates::NOT_COMPLETED)
 		{
 			assert(this->returnValues[i]->solutions == NULL || this->returnValues[i]->solutions->size() == 0);
 		}
 
 		//Output other analysis to file
-		file << this->returnValues[i]->solved;
+		file << static_cast<int>(this->returnValues[i]->solved);
 		file << " (" << this->returnValues[i]->state->getState()->getVariableAttempts() << ")";
 		if (this->returnValues[i]->solutions == NULL)
 		{

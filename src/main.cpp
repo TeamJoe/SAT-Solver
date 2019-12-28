@@ -119,18 +119,18 @@ void CNFTest(const char * perfix, const unsigned int start, const unsigned int e
 
 		solutions << i;
 		solutions << "," << result;
-		solutions << "," << output->solved;
+		solutions << "," << static_cast<int>(output->solved);
 		solutions << "," << sat->VariableCount();
 		solutions << "," << sat->ClauseCount();
 		solutions << "," << ss.str();
-		if (output->solved == NOT_COMPLETED || output->solved == COMPLETED_UNKNOWN)
+		if (output->solved == SolvedStates::NOT_COMPLETED || output->solved == SolvedStates::COMPLETED_UNKNOWN)
 		{
 			out << ",(UNKNOWN),0";
 			solutions << ",(UNKNOWN),0";
 			cout << "Unknown";
 			cout.flush();
 		}
-		else if (output->solved == COMPLETED_NO_SOLUTION || output->solved == NOT_COMPLETED_NO_SOLUTION)
+		else if (output->solved == SolvedStates::COMPLETED_NO_SOLUTION || output->solved == SolvedStates::NOT_COMPLETED_NO_SOLUTION)
 		{
 			out << ",(FALSE),0";
 			solutions << ",(FALSE),0";
@@ -256,17 +256,17 @@ void InputTest(const char * fileName, ofstream & out, ofstream & solutions, cons
 
 		solutions << i;
 		solutions << "," << result;
-		solutions << "," << output->solved;
+		solutions << "," << static_cast<int>(output->solved);
 		solutions << "," << sat->VariableCount();
 		solutions << "," << sat->ClauseCount();
-		if (output->solved == NOT_COMPLETED || output->solved == COMPLETED_UNKNOWN)
+		if (output->solved == SolvedStates::NOT_COMPLETED || output->solved == SolvedStates::COMPLETED_UNKNOWN)
 		{
 			out << ",(UNKNOWN),0";
 			solutions << ",(UNKNOWN),0";
 			cout << "Unknown";
 			cout.flush();
 		}
-		else if (output->solved == COMPLETED_NO_SOLUTION || output->solved == NOT_COMPLETED_NO_SOLUTION)
+		else if (output->solved == SolvedStates::COMPLETED_NO_SOLUTION || output->solved == SolvedStates::NOT_COMPLETED_NO_SOLUTION)
 		{
 			out << ",(FALSE),0";
 			solutions << ",(FALSE),0";

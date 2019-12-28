@@ -21,6 +21,12 @@ using namespace std;
 //
 //------------------------------
 //******************************
+SAT::SAT()
+{
+	this->variables = new list <Variable*>();
+	this->clauses = new list <Clause*>();
+	this->Valid = true;
+}
 SAT::SAT(ifstream & file, const bool isCNF)
 {
 	this->variables = new list <Variable *>();
@@ -159,6 +165,40 @@ int SAT::CharToInt(const char c) const
 	}
 }
 
+Literal* SAT::createLiteral(const int var)
+{
+	Variable* v = ContainsVariable((var < 0) ? (-1 * var) : var);
+	if (v == NULL)
+	{
+		v = new Variable(var, this);
+		this->variables->push_back(v);
+		v->SetListPointer((--this->variables->cend()));
+	}
+	return new Literal(v, NULL, var > 0);
+}
+
+bool SAT::addClause(const list <Literal*>* clause)
+{
+	assert(clause.size());
+	Clause* cla = new Clause(clause, this);
+	assert(cla);
+	assert(cla->Size());
+	if (cla->isValid() && !ContainsClause(cla))
+	{
+		this->clauses->push_back(cla);
+		cla->SetListPointer((--this->clauses->cend()));
+		return true;
+	}
+	else
+	{
+		for (list <Literal*>::const_iterator literal = clause->cbegin(); literal != clause->cend(); literal++) {
+			delete* literal;
+		}
+		delete cla;
+		return false;
+	}
+}
+
 //******************************
 //------------------------------
 //
@@ -198,35 +238,9 @@ bool SAT::ReadFrom(ifstream & file)
 			list <Literal *> clause;
 			for(unsigned int i = 0; i < s.size(); i++)
 			{
-				int var = CharToInt(s[i]);
-				Variable * v = ContainsVariable((var < 0) ? (-1 * var) : var);
-				if(v == NULL)
-				{
-					v = new Variable(var, this);
-					this->variables->push_back(v);
-					v->SetListPointer((--this->variables->cend()));
-				}
-				clause.push_back(new Literal(v, NULL, var > 0));
+				clause.push_back(this->createLiteral(CharToInt(s[i])));
 			}
-
-			assert(clause.size());
-			Clause * cla = new Clause(&clause, this);
-			assert(cla);
-			assert(cla->Size());
-			if(cla->isValid() && !ContainsClause(cla))
-			{
-				this->clauses->push_back(cla);
-				cla->SetListPointer((--this->clauses->cend()));
-			}
-			else
-			{
-				while(clause.size() > 0)
-				{
-					delete *clause.cbegin();
-					clause.pop_front();
-				}
-				delete cla;
-			}
+			this->addClause(&clause);
 		}
 	}
 
@@ -268,6 +282,7 @@ bool SAT::ReadCNF(ifstream & file)
 
 	//Read inputs
 	list <Literal *> clause;
+	unsigned int repeatCount = 0;
 	for(unsigned int i = 0; i < ClauseCount; i++)
 	{
 		clause.clear();
@@ -284,42 +299,16 @@ bool SAT::ReadCNF(ifstream & file)
 		}
 		while(var != 0)
 		{
-			Variable * v = ContainsVariable((var < 0) ? (-1 * var) : var);
-			if(v == NULL)
-			{
-				v = new Variable(var, this);
-				this->variables->push_back(v);
-				v->SetListPointer((--this->variables->cend()));
-			}
-			clause.push_back(new Literal(v, NULL, var > 0));
-
+			clause.push_back(this->createLiteral(var));
 			file >> var;
 		}
-
-		assert(clause.size());
-		Clause * cla = new Clause(&clause, this);
-		assert(cla);
-		assert(cla->Size());
-		if(cla->isValid() && !ContainsClause(cla))
-		{
-			this->clauses->push_back(cla);
-			cla->SetListPointer((--this->clauses->cend()));
-		}
-		else
-		{
-			while(clause.size() > 0)
-			{
-				delete *clause.cbegin();
-				clause.pop_front();
-			}
-			delete cla;
+		if (!this->addClause(&clause)) {
+			repeatCount++;
 		}
 	}
 
 	assert(VarCount == this->variables->size());
-
-	//There are repeats in the files, do not know why
-	//assert(ClauseCount == this->clauses.size());
+	assert(ClauseCount == this->clauses.size() + repeatCount);
 
 	return true;
 }

@@ -1,3 +1,5 @@
 /Debug
+/x86
+/x64
 *.vcxproj
 *.vcxproj.*

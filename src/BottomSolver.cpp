@@ -72,24 +72,24 @@ ReturnValue * solveBottomSat(const SATSolver * solver, void * variables)
 			int value = iter->second->getValue();
 			solverState->unsetVariable(currentVariable);
 
-			int solution = DefaultSolver(iter->second);
-			if (solution == MUST_NEGATIVE || solution == MUST_POSITIVE)
+			VariableSolutions solution = DefaultSolver(iter->second);
+			if (solution == VariableSolutions::MUST_NEGATIVE || solution == VariableSolutions::MUST_POSITIVE)
 			{
-				if (value < 0 && solution > 0)
+				if (value < 0 && (solution == VariableSolutions::VARIABLE_POSITIVE || solution == VariableSolutions::MUST_POSITIVE))
 				{
 					isFinished = false;
 				}
-				else if (value > 0 && solution < 0)
+				else if (value > 0 && (solution == VariableSolutions::VARIABLE_NEGATIVE || solution == VariableSolutions::MUST_NEGATIVE))
 				{
 					isFinished = false;
 				}
-				solverState->setVariable(currentVariable, !(solution < 0));
+				solverState->setVariable(currentVariable, !(solution == VariableSolutions::VARIABLE_NEGATIVE || solution == VariableSolutions::MUST_NEGATIVE));
 			}
 			else
 			{
 				solverState->setVariable(currentVariable, !(value < 0));
 			}
-			if (solution != VARIABLE_NO_SOLUTION && solution != MUST_NEGATIVE && solution != MUST_POSITIVE)
+			if (solution != VariableSolutions::VARIABLE_NO_SOLUTION && solution != VariableSolutions::MUST_NEGATIVE && solution != VariableSolutions::MUST_POSITIVE)
 			{
 				hasSolution = true;
 			}
@@ -127,7 +127,7 @@ ReturnValue * solveBottomSat(const SATSolver * solver, void * variables)
 	ReturnValue * value = new ReturnValue;
 	value->solutions = NULL;
 	value->state = solverState;
-	value->solved = hasSolution ? NOT_COMPLETED_SOLUTION : NOT_COMPLETED_NO_SOLUTION;
+	value->solved = hasSolution ? SolvedStates::NOT_COMPLETED_SOLUTION : SolvedStates::NOT_COMPLETED_NO_SOLUTION;
 	value->variables = NULL;
 	value->terminateRemaingThreads = true;
 

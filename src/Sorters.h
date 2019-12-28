@@ -61,8 +61,8 @@ bool LargestPositiveClauseSize(const VariableState * v1, const VariableState * v
 bool LargestPositiveClauseCount(const VariableState * v1, const VariableState * v2);
 bool AllClauseCounts(const VariableState * v1, const VariableState * v2);
 
-int DefaultSolver(const VariableState * v);
-int FlipSatSolver(const VariableState * v);
+VariableSolutions DefaultSolver(const VariableState * v);
+VariableSolutions FlipSatSolver(const VariableState * v);
 
 //Naming Convention
 //Least - Smallest number (So LeastSmallest is not the largest of the smallest, it is the smallest of the smallest numbers)

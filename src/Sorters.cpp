@@ -369,49 +369,49 @@ bool AllClauseCounts(const VariableState * v1, const VariableState * v2)
 //
 //------------------------------
 //******************************
-int DefaultSolver(const VariableState * v)
+VariableSolutions DefaultSolver(const VariableState * v)
 {
 	if (!v->hasSolution())
 	{
-		return VARIABLE_NO_SOLUTION;
+		return VariableSolutions::VARIABLE_NO_SOLUTION;
 	}
 	else if (v->getSmallestNegativeClauseSize() == 1)
 	{
-		return MUST_NEGATIVE;
+		return VariableSolutions::MUST_NEGATIVE;
 	}
 	else if (v->getSmallestPositiveClauseSize() == 1)
 	{
-		return MUST_POSITIVE;
+		return VariableSolutions::MUST_POSITIVE;
 	}
 	else if (v->getNegativesSize() == 0)
 	{
-		return MUST_POSITIVE;
+		return VariableSolutions::MUST_POSITIVE;
 	}
 	else if (v->getPositivesSize() == 0)
 	{
-		return MUST_NEGATIVE;
+		return VariableSolutions::MUST_NEGATIVE;
 	}
 	else if (v->getPositivesSize() != v->getNegativesSize())
 	{
 		return v->getPositivesSize() > v->getNegativesSize()
-			? VARIABLE_POSITIVE
-			: VARIABLE_NEGATIVE;
+			? VariableSolutions::VARIABLE_POSITIVE
+			: VariableSolutions::VARIABLE_NEGATIVE;
 	}
 	else
 	{
-		return VARIABLE_UNKNOWN;
+		return VariableSolutions::VARIABLE_UNKNOWN;
 	}
 }
-int FlipSatSolver(const VariableState * v)
+VariableSolutions FlipSatSolver(const VariableState * v)
 {
 	if (v->getPositivesSize() == v->getNegativesSize())
 	{
-		return VARIABLE_UNKNOWN;
+		return VariableSolutions::VARIABLE_UNKNOWN;
 	}
 	else
 	{
 		return v->getPositivesSize() > v->getNegativesSize()
-			? VARIABLE_POSITIVE
-			: VARIABLE_NEGATIVE;
+			? VariableSolutions::VARIABLE_POSITIVE
+			: VariableSolutions::VARIABLE_NEGATIVE;
 	}
 }

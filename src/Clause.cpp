@@ -58,6 +58,8 @@ Clause::Clause(const list <Literal *> * clause, SAT * _parent)
 			else if(this->clause[y]->Opposite(*iter))
 			{
 				this->_size = 0;
+				// TODO: Could break, as it will delete here and in SAT
+				// Can also cause a problem if the clause has a duplicate as well
 				for(list <Literal *>::const_iterator iter = clause->cbegin(); iter != clause->cend(); iter++)
 				{
 					delete *iter;

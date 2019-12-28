@@ -28,11 +28,14 @@ private:
 	int CharToInt(const char c) const;
 
 	//Read Input Functions
+	Literal* createLiteral(const int var);
+	bool addClause(const list <Literal*>* var);
 	bool ReadFrom(ifstream & file);
 	bool ReadCNF(ifstream & file);
 protected:
 	void cleanVariables();
 	void cleanClauses();
+	SAT();
 public:
 
 	//Constructors
