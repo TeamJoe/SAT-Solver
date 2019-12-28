@@ -122,13 +122,13 @@ void Test(Timer* totalTimer, double compileTime, SAT* sat, const char* fileName,
 			solutions << "," << output->solutions->size() << ",";
 			for (list<const int*>::const_iterator iter = output->solutions->cbegin(); iter != output->solutions->cend(); iter++)
 			{
-				solutions << "[(" << (*iter)[0] << ")(|";
+				solutions << "|(" << (*iter)[0] << ")(:";
 				assert((*iter)[(*iter)[0] + 1] == NULL);
 				for (int i = 1; i < ((*iter)[0] + 1); i++)
 				{
-					solutions << (*iter)[i] << "|";
+					solutions << (*iter)[i] << ":";
 				}
-				solutions << ")]";
+				solutions << ")|";
 			}
 		}
 		else

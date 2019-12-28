@@ -16,7 +16,7 @@ int main(int argc, char * argv[])
 	solutions.open("out\\InputSolutions.csv");
 
 	out << "Count,Per Function|Final State (Variable Evaluations) (Solutions Found)|,Expected Results,Variable Count,Clause Count,File Location,Result,Solution Count,Compile Time,Analyze Time,Solve Time,Output Time,Clean Time,Total Time" << endl;
-	solutions << "Count,Expected Result,Final State,Variable Count,Clause Count,File Location,Result,Solution Count,Solutions" << endl;
+	solutions << "Count,Expected Result,Final State,Variable Count,Clause Count,File Location,Result,Solution Count,Solutions |(Count)(Results)|" << endl;
 
 	InputTest("data\\Input.txt", out, solutions, 1);
 
@@ -30,7 +30,7 @@ int main(int argc, char * argv[])
 	solutions.open("out\\CNFSolutions.csv");
 
 	out << "Count,Per Function|Final State (Variable Evaluations) (Solutions Found)|,Expected Results,Variable Count,Clause Count,File Location,Result,Solution Count,Compile Time,Analyze Time,Solve Time,Output Time,Clean Time,Total Time" << endl;
-	solutions << "Count,Expected Result,Final State,Variable Count,Clause Count,File Location,Result,Solution Count,Solutions" << endl;
+	solutions << "Count,Expected Result,Final State,Variable Count,Clause Count,File Location,Result,Solution Count,Solutions |(Count)(Results)|" << endl;
 
 #ifdef _DEBUG
 	file << "uf20" << endl;
