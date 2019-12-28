@@ -199,9 +199,9 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 		{
 			analysisFunction(file, this->returnValues[i]);
 		}
-		file << ",";
+		file << "|";
 	}
-
+	file << ",";
 	return *solution;
 }
 
