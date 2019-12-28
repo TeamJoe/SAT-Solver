@@ -119,7 +119,7 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 	Solution * solution = new Solution;
 	solution->solved = SolvedStates::NOT_COMPLETED;
 	solution->solutions = NULL;
-	
+	file << "|";
 	for(unsigned int i = 0; i < this->totalThreads; i++)
 	{
 		//Adjust the solution variable

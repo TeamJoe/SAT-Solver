@@ -97,14 +97,14 @@ void Test(Timer* totalTimer, double compileTime, SAT* sat, const char* fileName,
 	solutions << "," << fileName;
 	if (output->solved == SolvedStates::NOT_COMPLETED || output->solved == SolvedStates::COMPLETED_UNKNOWN)
 	{
-		out << ",(UNKNOWN),0,";
+		out << ",(UNKNOWN),0";
 		solutions << ",(UNKNOWN),0,";
 		cout << "Unknown";
 		cout.flush();
 	}
 	else if (output->solved == SolvedStates::COMPLETED_NO_SOLUTION || output->solved == SolvedStates::NOT_COMPLETED_NO_SOLUTION)
 	{
-		out << ",(FALSE),0,";
+		out << ",(FALSE),0";
 		solutions << ",(FALSE),0,";
 		cout << "False";
 		cout.flush();
@@ -172,9 +172,6 @@ void CNFTest(const char* perfix, const unsigned int start, const unsigned int en
 	Timer* totalTimer = new Timer();
 	Timer* timer = new Timer();
 
-	out << "Count,Final State (Variable Evaluations) (Solutions Found),Expected Results,Variable Count,Clause Count,File Location,Result,Solution Count,Compile Time,Analyze Time,Solve Time,Output Time,Clean Time,Total Time" << endl;
-	solutions << "Count,Expected Result,Final State,Variable Count,Clause Count,File Location,Result,Solution Count,Solutions" << endl;
-
 	for (unsigned int i = start; i <= end; i++)
 	{
 		totalTimer->reset();
@@ -209,9 +206,6 @@ void InputTest(const char* fileName, ofstream& out, ofstream& solutions, const i
 {
 	Timer* totalTimer = new Timer();
 	Timer* timer = new Timer();
-
-	out << "Count,Per Function|Final State (Variable Evaluations) (Solutions Found),Expected Results,Variable Count,Clause Count,File Location,Result,Solution Count,Compile Time,Analyze Time,Solve Time,Output Time,Clean Time,Total Time" << endl;
-	solutions << "Count,Expected Result,Final State,Variable Count,Clause Count,File Location,Result,Solution Count,Solutions" << endl;
 
 	ifstream file;
 	file.open(fileName);
