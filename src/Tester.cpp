@@ -226,7 +226,6 @@ void InputTest(const char* fileName, ofstream& out, ofstream& solutions, const i
 			delete sat;
 			break;
 		}
-
 		out << dec << i << ",";
 		solutions << i;
 		Test(totalTimer, compileTime, sat, fileName, out, solutions, result);

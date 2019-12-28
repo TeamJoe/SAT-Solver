@@ -20,18 +20,23 @@ private:
 	list <Variable *> * variables;
 	list <Clause *> * clauses;
 
-	Clause* ContainsClause(const Clause* clause) const;
-	Variable* ContainsVariable(const int& variable) const;
-	Variable* ContainsVariable(const Variable* variable) const;
+	Clause* getClause(const Clause* clause) const;
+	Variable* getVariable(const int& variable) const;
+	Variable* getVariable(const Variable* variable) const;
 
 	void cleanVariables();
 	void cleanClauses();
 protected:
 	Variable* getOrCreateVariable(const int& var);
+	bool contains(const Clause* clause) const;
+	bool contains(const int& variable) const;
+	bool contains(const Variable* variable) const;
 public:
 	//Constructors
 	SAT();
 	~SAT();
+
+	SAT* copy() const;
 
 	bool addVariable(Variable* variable);
 	bool addClause(const list <int> * variables);
@@ -44,6 +49,9 @@ public:
 	//Solver Functions
 	unsigned int ClauseCount() const;
 	unsigned int VariableCount() const;
+
+	bool operator==(const SAT& sat) const;
+	bool operator!=(const SAT& sat) const;
 
 	friend Clause;
 	friend SATState;

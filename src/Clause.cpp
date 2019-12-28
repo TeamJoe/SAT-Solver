@@ -31,7 +31,7 @@ Clause::Clause(const list <int> * clause, SAT * _parent)
 	this->_size = (unsigned int)clause->size();
 	if(this->_size > 0)
 	{
-		this->clause = new Literal * [(this->_size + (unsigned int)1)];
+		this->clause = new Literal * [this->_size + 1];
 	}
 
 	assert(this->_size > 0);
@@ -120,6 +120,15 @@ Literal* Clause::createLiteral(const int& var)
 	Variable* v = this->_parent->getOrCreateVariable(var);
 	assert(v != NULL);
 	return new Literal(v, this, var > 0);
+}
+Clause* Clause::copy(SAT* _parent) const
+{
+	list <int> clause;
+	for (unsigned int i = 0; i < this->_size; i++)
+	{
+		clause.push_back(this->clause[i]->getValue());
+	}
+	return new Clause(&clause, _parent);
 }
 //******************************
 //------------------------------

@@ -181,6 +181,10 @@ int Variable::GetVariable() const
 	assert(this->Variable_Number > 0);
 	return this->Variable_Number;
 }
+bool Variable::isValid() const
+{
+	return this->Variable_Number > 0;
+}
 
 //******************************
 //------------------------------

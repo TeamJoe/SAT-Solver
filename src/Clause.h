@@ -22,12 +22,15 @@ private:
 
 	SAT * _parent;
 	list <Clause *>::const_iterator listPointer;
+
+	Literal* createLiteral(const int& var);
 protected:
 	Clause(SAT * _parent);
 	Clause(const list <int> * clause, SAT * _parent);
 
 	void SetListPointer(list <Clause *>::const_iterator var);
-	Literal* createLiteral(const int& var);
+
+	Clause* copy(SAT* _parent) const;
 public:
 	~Clause();
 

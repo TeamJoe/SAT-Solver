@@ -38,6 +38,7 @@ public:
 	//Operations
 	unsigned int getIdentifier() const;
 	int GetVariable() const;
+	bool isValid() const;
 
 	//Operator Overloads
 	bool operator==(const Variable & variable) const;
