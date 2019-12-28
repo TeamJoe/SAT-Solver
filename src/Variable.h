@@ -30,6 +30,8 @@ protected:
 	void Add(Literal * lit);
 	void Remove(list <Literal *>::const_iterator litIter);
 	void SetListPointer(list <Variable *>::const_iterator var);
+
+	Variable* copy(SAT* _parent) const;
 public:
 	~Variable();
 
@@ -44,6 +46,12 @@ public:
 	bool operator>(const Variable & variable) const;
 	bool operator<=(const Variable & variable) const;
 	bool operator>=(const Variable & variable) const;
+	bool operator==(const int& variable) const;
+	bool operator!=(const int& variable) const;
+	bool operator<(const int& variable) const;
+	bool operator>(const int& variable) const;
+	bool operator<=(const int& variable) const;
+	bool operator>=(const int& variable) const;
 
 	friend Literal;
 	friend SAT;

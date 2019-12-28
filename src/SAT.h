@@ -20,17 +20,14 @@ private:
 	list <Variable *> * variables;
 	list <Clause *> * clauses;
 
-	//Private Functions
-	Clause * ContainsClause(const Clause * clause) const;
-	Variable * ContainsVariable(const int variable) const;
-	Variable * ContainsVariable(const Variable * variable) const;
+	Clause* ContainsClause(const Clause* clause) const;
+	Variable* ContainsVariable(const int& variable) const;
+	Variable* ContainsVariable(const Variable* variable) const;
 
-	//Read Input Functions
-	Literal* createLiteral(const int var);
-	bool addClause(const list <Literal*>* var);
-protected:
 	void cleanVariables();
 	void cleanClauses();
+protected:
+	Variable* getOrCreateVariable(const int& var);
 public:
 	//Constructors
 	SAT();
@@ -48,6 +45,7 @@ public:
 	unsigned int ClauseCount() const;
 	unsigned int VariableCount() const;
 
+	friend Clause;
 	friend SATState;
 };
 

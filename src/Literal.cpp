@@ -22,6 +22,7 @@ Literal::Literal(Variable * Variable, Clause * clause, const bool isPositive)
 	this->isDestroying = false;
 #endif
 	assert(Variable != NULL);
+	assert(clause != NULL);
 
 	this->variable = Variable;
 	this->clause = clause;
@@ -30,6 +31,8 @@ Literal::Literal(Variable * Variable, Clause * clause, const bool isPositive)
 		: (-1 * this->variable->GetVariable());
 
 	assert(this->Value != NULL);
+
+	this->variable->Add(this);
 }
 Literal::~Literal()
 {
@@ -45,12 +48,6 @@ Literal::~Literal()
 	this->variable = NULL;
 	this->clause = NULL;
 	this->Value = 0;
-}
-void Literal::Add(Clause * clause)
-{
-	assert(clause != NULL);
-	this->clause = clause;
-	this->variable->Add(this);
 }
 void Literal::SetListPointer(list <Literal *>::const_iterator lit)
 {
@@ -95,6 +92,17 @@ bool Literal::Opposite(const Literal * lit) const
 {
 	assert(lit != NULL);
 	return (-1 * this->Value) == lit->Value;
+}
+
+bool Literal::Contains(const int& lit) const
+{
+	assert(lit != 0);
+	return this->Value == lit;
+}
+bool Literal::Opposite(const int& lit) const
+{
+	assert(lit != 0);
+	return (-1 * this->Value) == lit;
 }
 //******************************
 //------------------------------
@@ -144,17 +152,17 @@ bool Literal::operator==(const Literal & lit) const
 	assert(this->clause->Contains(this));
 	assert(lit.variable != NULL);
 	assert(lit.clause != NULL);
-	int var1 = this->Value < 0 
-		? (-1 * this->Value)
-		: this->Value;
-	int var2 = lit.Value < 0 
-		? (-1 * lit.Value)
-		: lit.Value;
-	return var1 == var2;
+	assert(lit.Value != 0);
+	return *this == lit.Value;
 }
 bool Literal::operator!=(const Literal & lit) const
 {
-	return !(*this == lit);
+	assert(this->clause != NULL);
+	assert(this->clause->Contains(this));
+	assert(lit.variable != NULL);
+	assert(lit.clause != NULL);
+	assert(lit.Value != 0);
+	return *this != lit.Value;
 }
 bool Literal::operator<(const Literal & lit) const
 {
@@ -162,13 +170,8 @@ bool Literal::operator<(const Literal & lit) const
 	assert(this->clause->Contains(this));
 	assert(lit.variable != NULL);
 	assert(lit.clause != NULL);
-	int var1 = this->Value < 0 
-		? (-1 * this->Value)
-		: this->Value;
-	int var2 = lit.Value < 0 
-		? (-1 * lit.Value)
-		: lit.Value;
-	return var1 < var2;
+	assert(lit.Value != 0);
+	return *this < lit.Value;
 }
 bool Literal::operator>(const Literal & lit) const
 {
@@ -176,19 +179,75 @@ bool Literal::operator>(const Literal & lit) const
 	assert(this->clause->Contains(this));
 	assert(lit.variable != NULL);
 	assert(lit.clause != NULL);
-	int var1 = this->Value < 0 
-		? (-1 * this->Value)
-		: this->Value;
-	int var2 = lit.Value < 0 
-		? (-1 * lit.Value)
-		: lit.Value;
-	return var1 > var2;
+	assert(lit.Value != 0);
+	return *this > lit.Value;
 }
 bool Literal::operator<=(const Literal & lit) const
 {
-	return !(*this > lit);
+	assert(this->clause != NULL);
+	assert(this->clause->Contains(this));
+	assert(lit.variable != NULL);
+	assert(lit.clause != NULL);
+	assert(lit.Value != 0);
+	return *this <= lit.Value;
 }
 bool Literal::operator>=(const Literal & lit) const
+{
+	assert(this->clause != NULL);
+	assert(this->clause->Contains(this));
+	assert(lit.variable != NULL);
+	assert(lit.clause != NULL);
+	assert(lit.Value != 0);
+	return *this >= lit.Value;
+}
+bool Literal::operator==(const int& lit) const
+{
+	assert(this->clause != NULL);
+	assert(this->clause->Contains(this));
+	assert(lit != NULL);
+	int var1 = this->Value < 0
+		? (-1 * this->Value)
+		: this->Value;
+	int var2 = lit < 0
+		? (-1 * lit)
+		: lit;
+	return var1 == var2;
+}
+bool Literal::operator!=(const int& lit) const
+{
+	return !(*this == lit);
+}
+bool Literal::operator<(const int& lit) const
+{
+	assert(this->clause != NULL);
+	assert(this->clause->Contains(this));
+	assert(lit != NULL);
+	int var1 = this->Value < 0
+		? (-1 * this->Value)
+		: this->Value;
+	int var2 = lit < 0
+		? (-1 * lit)
+		: lit;
+	return var1 < var2;
+}
+bool Literal::operator>(const int& lit) const
+{
+	assert(this->clause != NULL);
+	assert(this->clause->Contains(this));
+	assert(lit != NULL);
+	int var1 = this->Value < 0
+		? (-1 * this->Value)
+		: this->Value;
+	int var2 = lit < 0
+		? (-1 * lit)
+		: lit;
+	return var1 > var2;
+}
+bool Literal::operator<=(const int& lit) const
+{
+	return !(*this > lit);
+}
+bool Literal::operator>=(const int& lit) const
 {
 	return !(*this < lit);
 }

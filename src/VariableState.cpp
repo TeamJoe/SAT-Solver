@@ -59,7 +59,7 @@ VariableState::VariableState(SATState * sat, const Variable * v)
 			if(currentClauseSize >= this->PositiveClauseSizes->size())
 			{
 				unsigned int oldSize = this->PositiveClauseSizes->size();
-				this->PositiveClauseSizes->resize(currentClauseSize + 1);
+				this->PositiveClauseSizes->resize(currentClauseSize + (unsigned int)1);
 				(*this->PositiveClauseSizes)[currentClauseSize] = 1;
 				for (oldSize; oldSize < this->PositiveClauseSizes->size() - 1; oldSize++)
 				{
@@ -76,7 +76,7 @@ VariableState::VariableState(SATState * sat, const Variable * v)
 			if(currentClauseSize >= this->NegativeClauseSizes->size())
 			{
 				unsigned int oldSize = this->NegativeClauseSizes->size();
-				this->NegativeClauseSizes->resize(currentClauseSize + 1);
+				this->NegativeClauseSizes->resize(currentClauseSize + (unsigned int)1);
 				(*this->NegativeClauseSizes)[currentClauseSize] = 1;
 				for (oldSize; oldSize < this->NegativeClauseSizes->size() - 1; oldSize++)
 				{

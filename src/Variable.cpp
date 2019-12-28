@@ -31,6 +31,14 @@ Variable::Variable(const int Variable_Number, SAT * _parent)
 
 	this->_parent = _parent;
 }
+Variable* Variable::copy(SAT* _parent) const
+{
+	assert(this->Positives != NULL);
+	assert(this->Negatives != NULL);
+	assert(this->clauses != NULL);
+	assert(this->Variable_Number != 0);
+	return new Variable(this->GetVariable(), _parent);
+}
 Variable::~Variable()
 {
 	assert(this->Positives != NULL);
@@ -184,30 +192,72 @@ int Variable::GetVariable() const
 bool Variable::operator==(const Variable & Variable) const
 {
 	assert(this->Variable_Number > 0);
+	assert(Variable.Variable_Number > 0);
 	return this->Variable_Number == Variable.Variable_Number;
 }
 bool Variable::operator!=(const Variable & Variable) const
 {
 	assert(this->Variable_Number > 0);
+	assert(Variable.Variable_Number > 0);
 	return this->Variable_Number != Variable.Variable_Number;
 }
 bool Variable::operator<(const Variable & Variable) const
 {
 	assert(this->Variable_Number > 0);
+	assert(Variable.Variable_Number > 0);
 	return this->Variable_Number < Variable.Variable_Number;
 }
 bool Variable::operator>(const Variable & Variable) const
 {
 	assert(this->Variable_Number > 0);
+	assert(Variable.Variable_Number > 0);
 	return this->Variable_Number > Variable.Variable_Number;
 }
 bool Variable::operator<=(const Variable & Variable) const
 {
 	assert(this->Variable_Number > 0);
+	assert(Variable.Variable_Number > 0);
 	return this->Variable_Number <= Variable.Variable_Number;
 }
 bool Variable::operator>=(const Variable & Variable) const
 {
 	assert(this->Variable_Number > 0);
+	assert(Variable.Variable_Number > 0);
 	return this->Variable_Number >= Variable.Variable_Number;
+}
+bool Variable::operator==(const int& Variable) const
+{
+	assert(this->Variable_Number > 0);
+	assert(Variable != 0);
+	return this->Variable_Number == (Variable < 0 ? -1 * Variable : Variable);
+}
+bool Variable::operator!=(const int& Variable) const
+{
+	assert(this->Variable_Number > 0);
+	assert(Variable != 0);
+	return this->Variable_Number != (Variable < 0 ? -1 * Variable : Variable);
+}
+bool Variable::operator<(const int& Variable) const
+{
+	assert(this->Variable_Number > 0);
+	assert(Variable != 0);
+	return this->Variable_Number < (Variable < 0 ? -1 * Variable : Variable);
+}
+bool Variable::operator>(const int& Variable) const
+{
+	assert(this->Variable_Number > 0);
+	assert(Variable != 0);
+	return this->Variable_Number > (Variable < 0 ? -1 * Variable : Variable);
+}
+bool Variable::operator<=(const int& Variable) const
+{
+	assert(this->Variable_Number > 0);
+	assert(Variable != 0);
+	return this->Variable_Number <= (Variable < 0 ? -1 * Variable : Variable);
+}
+bool Variable::operator>=(const int& Variable) const
+{
+	assert(this->Variable_Number > 0);
+	assert(Variable != 0);
+	return this->Variable_Number >= (Variable < 0 ? -1 * Variable : Variable);
 }

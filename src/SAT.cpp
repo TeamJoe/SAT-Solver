@@ -28,8 +28,8 @@ SAT::SAT()
 }
 SAT::~SAT()
 {
-	cleanVariables();
 	cleanClauses();
+	cleanVariables();
 }
 void SAT::cleanVariables()
 {
@@ -72,12 +72,12 @@ Clause * SAT::ContainsClause(const Clause * clause) const
 	}
 	return NULL;
 }
-Variable * SAT::ContainsVariable(const int variable) const
+Variable * SAT::ContainsVariable(const int& variable) const
 {
 	assert(this->variables != NULL);
 	for(list <Variable *>::const_iterator iter = this->variables->cbegin(); iter != this->variables->cend(); iter++)
 	{
-		if((*iter)->GetVariable() == variable)
+		if(**iter == variable)
 		{
 			return *iter;
 		}
@@ -97,8 +97,9 @@ Variable * SAT::ContainsVariable(const Variable * variable) const
 	return NULL;
 }
 
-Literal* SAT::createLiteral(const int var)
+Variable* SAT::getOrCreateVariable(const int& var)
 {
+	assert(var != 0);
 	Variable* v = ContainsVariable((var < 0) ? (-1 * var) : var);
 	if (v == NULL)
 	{
@@ -106,29 +107,7 @@ Literal* SAT::createLiteral(const int var)
 		this->variables->push_back(v);
 		v->SetListPointer((--this->variables->cend()));
 	}
-	return new Literal(v, NULL, var > 0);
-}
-
-bool SAT::addClause(const list <Literal*>* clause)
-{
-	assert(clause->size());
-	Clause* cla = new Clause(clause, this);
-	assert(cla);
-	assert(cla->Size());
-	if (cla->isValid() && !ContainsClause(cla))
-	{
-		this->clauses->push_back(cla);
-		cla->SetListPointer((--this->clauses->cend()));
-		return true;
-	}
-	else
-	{
-		for (list <Literal*>::const_iterator literal = clause->cbegin(); literal != clause->cend(); literal++) {
-			delete* literal;
-		}
-		delete cla;
-		return false;
-	}
+	return v;
 }
 
 bool SAT::addVariable(Variable* variable)
@@ -152,12 +131,18 @@ bool SAT::addClause(const list <int>* clause)
 	assert(this->clauses != NULL);
 	assert(clause != NULL);
 	if (clause->size()) {
-		list <Literal*> cla;
-		for (list <int>::const_iterator literal = clause->cbegin(); literal != clause->cend(); literal++)
+		Clause* cla = new Clause(clause, this);
+		if (cla->isValid() && !ContainsClause(cla))
 		{
-			cla.push_back(this->createLiteral(*literal));
+			this->clauses->push_back(cla);
+			cla->SetListPointer((--this->clauses->cend()));
+			return true;
 		}
-		return this->addClause(&cla);
+		else
+		{
+			delete cla;
+			return false;
+		}
 	}
 	return false;
 }

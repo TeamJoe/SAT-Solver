@@ -24,9 +24,10 @@ private:
 	list <Clause *>::const_iterator listPointer;
 protected:
 	Clause(SAT * _parent);
-	Clause(const list <Literal *> * clause, SAT * _parent);
+	Clause(const list <int> * clause, SAT * _parent);
 
 	void SetListPointer(list <Clause *>::const_iterator var);
+	Literal* createLiteral(const int& var);
 public:
 	~Clause();
 
@@ -36,6 +37,7 @@ public:
 	bool Contains(const Variable * variable) const;
 	bool Contains(const Variable * variable, const bool isPositive) const;
 	bool Contains(const Literal * lit) const;
+	bool Contains(const int variables) const;
 	bool Evaluate(const int * variables) const;
 	bool Evaluate(const list <int> * variables) const;
 	bool isValid() const;

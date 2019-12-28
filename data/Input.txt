@@ -1,2 +1,3 @@
 12 aCD aCD bCD AcD Abd Bcd ACd ACD aCd AcD ACD aCD
 16 ABD aBD AbD ACD aCD AcD BCD bCD BcD ABC aBC AbC abC ABc aBc bcd
+3 aaA aBb abb

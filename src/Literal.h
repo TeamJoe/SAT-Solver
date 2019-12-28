@@ -23,7 +23,6 @@ private:
 	bool isDestroying;
 #endif
 protected:
-	void Add(Clause * clause);
 	void SetListPointer(list <Literal *>::const_iterator lit);
 public:
 
@@ -37,6 +36,8 @@ public:
 	bool Opposite(const Variable * variable, const bool isPositive) const;
 	bool Contains(const Literal * lit) const;
 	bool Opposite(const Literal * lit) const;
+	bool Contains(const int& lit) const;
+	bool Opposite(const int& lit) const;
 
 	//Operators
 	unsigned int getIdentifier() const;
@@ -46,7 +47,6 @@ public:
 	const Variable * getVariable() const;
 	unsigned int ClauseSize() const;
 
-
 	//Operator overload (only comparors variable, not value)
 	bool operator==(const Literal & lit) const;
 	bool operator!=(const Literal & lit) const;
@@ -54,6 +54,12 @@ public:
 	bool operator>(const Literal & lit) const;
 	bool operator<=(const Literal & lit) const;
 	bool operator>=(const Literal & lit) const;
+	bool operator==(const int& lit) const;
+	bool operator!=(const int& lit) const;
+	bool operator<(const int& lit) const;
+	bool operator>(const int& lit) const;
+	bool operator<=(const int& lit) const;
+	bool operator>=(const int& lit) const;
 
 	friend Variable;
 	friend Clause;
