@@ -1,6 +1,5 @@
-1,2 (81) (4),1,20,90,data\uf20\uf20-01.cnf,(TRUE),4,(Compile Time: 0.0217117),(Analyze Time: 2e-06),(Solve Time: 9.33155),(Output Time: 0.0006706),(Clean Time: 0.000436),(Total Time: 9.35495)
-2,2 (85) (3),1,20,91,data\uf20\uf20-02.cnf,(TRUE),3,(Compile Time: 0.0218147),(Analyze Time: 2e-06),(Solve Time: 10.8664),(Output Time: 0.0005126),(Clean Time: 0.0004378),(Total Time: 10.8897)
-3,2 (92) (1),1,20,91,data\uf20\uf20-03.cnf,(TRUE),1,(Compile Time: 0.0217619),(Analyze Time: 2e-06),(Solve Time: 9.87246),(Output Time: 0.0003278),(Clean Time: 0.0004222),(Total Time: 9.89538)
-4,2 (71) (1),1,20,91,data\uf20\uf20-04.cnf,(TRUE),1,(Compile Time: 0.0215493),(Analyze Time: 1.8e-06),(Solve Time: 9.62214),(Output Time: 0.0003186),(Clean Time: 0.0004481),(Total Time: 9.64493)
-5,2 (59) (1),1,20,91,data\uf20\uf20-05.cnf,(TRUE),1,(Compile Time: 0.0218473),(Analyze Time: 2.2e-06),(Solve Time: 7.42258),(Output Time: 0.0002985),(Clean Time: 0.0004291),(Total Time: 7.44567)
-1,
+1,2 (81) (4),1,20,90,data\uf20\uf20-01.cnf,(TRUE),4,(Compile Time: 0.0220625),(Analyze Time: 2.4e-06),(Solve Time: 8.93985),(Output Time: 0.0006352),(Clean Time: 0.0004335),(Total Time: 8.96368)
+2,2 (87) (3),1,20,91,data\uf20\uf20-02.cnf,(TRUE),3,(Compile Time: 0.0220667),(Analyze Time: 1.7e-06),(Solve Time: 10.318),(Output Time: 0.000556),(Clean Time: 0.000459),(Total Time: 10.3416)
+3,2 (94) (1),1,20,91,data\uf20\uf20-03.cnf,(TRUE),1,(Compile Time: 0.0221871),(Analyze Time: 1.9e-06),(Solve Time: 11.2266),(Output Time: 0.0004109),(Clean Time: 0.0004543),(Total Time: 11.2502)
+4,2 (75) (1),1,20,91,data\uf20\uf20-04.cnf,(TRUE),1,(Compile Time: 0.0219597),(Analyze Time: 1.8e-06),(Solve Time: 10.9137),(Output Time: 0.000393),(Clean Time: 0.0004526),(Total Time: 10.937)
+5,2 (60) (1),1,20,91,data\uf20\uf20-05.cnf,(TRUE),1,(Compile Time: 0.0219651),(Analyze Time: 2.4e-06),(Solve Time: 6.98635),(Output Time: 0.000322),(Clean Time: 0.0004619),(Total Time: 7.00969)
