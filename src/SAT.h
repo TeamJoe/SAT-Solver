@@ -3,6 +3,7 @@ class SAT;
 #ifndef SAT_H
 #define SAT_H
 
+#include <fstream>
 #include <list>
 
 #include "Variable.h"

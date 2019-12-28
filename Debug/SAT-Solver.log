@@ -1,0 +1,17 @@
+﻿  BottomSolver.cpp
+  Clause.cpp
+  ClauseState.cpp
+  DepthSolver.cpp
+D:\Users\Joseph\source\repos\SAT-Solver\SAT-Solver\src\DepthSolver.cpp(365,27): warning C4101: 'ba': unreferenced local variable
+D:\Users\Joseph\source\repos\SAT-Solver\SAT-Solver\src\DepthSolver.cpp(390,26): warning C4101: 'ba': unreferenced local variable
+  Literal.cpp
+  SAT.cpp
+  SATSolver.cpp
+  SATSolverState.cpp
+  SATState.cpp
+  Sorters.cpp
+  Variable.cpp
+  VariableState.cpp
+  main.cpp
+  Generating Code...
+  SAT-Solver.vcxproj -> D:\Users\Joseph\source\repos\SAT-Solver\Debug\SAT-Solver.exe

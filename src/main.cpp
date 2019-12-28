@@ -1,7 +1,7 @@
 #ifdef WIN32
 #include <Windows.h>
 #else
-#include <sys/time.h>
+#include <time.h>
 #include <ctime>
 #endif
 
@@ -47,7 +47,10 @@ private:
     std::chrono::time_point<clock_> beg_;
 };
 
-void CNFTest(char * perfix, unsigned int start, unsigned int end, ofstream & file, ofstream & out, ofstream & solutions, int result)
+#include <string>
+#include <windows.h>
+
+void CNFTest(const char * perfix, const unsigned int start, const unsigned int end, ofstream & file, ofstream & out, ofstream & solutions, const int result)
 {
 	unsigned int False = 0;
 	unsigned int Unknown = 0;
@@ -195,7 +198,7 @@ void CNFTest(char * perfix, unsigned int start, unsigned int end, ofstream & fil
 	delete timer;
 }
 
-void InputTest(char * fileName, ofstream & out, ofstream & solutions, int result)
+void InputTest(const char * fileName, ofstream & out, ofstream & solutions, const int result)
 {
 	ifstream file;
 	file.open(fileName);
@@ -336,53 +339,53 @@ int main(int argc, char * argv[])
 {
 	ofstream out;
 	ofstream solutions;
-	out.open("InputOut.csv");
-	solutions.open("InputSolutions.csv");
+	out.open("out\\InputOut.csv");
+	solutions.open("out\\InputSolutions.csv");
 
-	InputTest("Input.txt", out, solutions, 1);
+	InputTest("data\\Input.txt", out, solutions, 1);
 
 	out.close();
 	solutions.close();
 	system("pause");
 
 	ofstream file;
-	file.open("Output.txt");
-	out.open("CNFOut.csv");
-	solutions.open("CNFSolutions.csv");
+	file.open("out\\Output.txt");
+	out.open("out\\CNFOut.csv");
+	solutions.open("out\\CNFSolutions.csv");
 
 #ifdef _DEBUG
 	file << "uf20" << endl;
-	CNFTest("uf20\\uf20-0", 1, 5, file, out, solutions, 1);
+	CNFTest("data\\uf20\\uf20-0", 1, 5, file, out, solutions, 1);
 
 	file << "uf50" << endl;
-	CNFTest("uf50\\uf50-0", 1, 2, file, out, solutions, 1);
+	CNFTest("data\\uf50\\uf50-0", 1, 2, file, out, solutions, 1);
 
 	file << "uuf50" << endl;
-	CNFTest("uuf50\\uuf50-0", 1, 2, file, out, solutions, -1);
+	CNFTest("data\\uuf50\\uuf50-0", 1, 2, file, out, solutions, -1);
 #else
 	/*file << "comp" << endl;
-	CNFTest("comp\\comp-0", 1, 1, file, out, solutions, 1);*/
+	CNFTest("..\\data\\comp\\comp-0", 1, 1, file, out, solutions, 1);*/
 
 	file << "uf20" << endl;
-	CNFTest("uf20\\uf20-0", 1, 1000, file, out, solutions, 1);
+	CNFTest("data\\uf20\\uf20-0", 1, 1000, file, out, solutions, 1);
 
 	file << "uf50" << endl;
-	CNFTest("uf50\\uf50-0", 1, 1000, file, out, solutions, 1);
+	CNFTest("data\\uf50\\uf50-0", 1, 1000, file, out, solutions, 1);
 
 	file << "uuf50" << endl;
-	CNFTest("uuf50\\uuf50-0", 1, 1000, file, out, solutions, -1);
+	CNFTest("data\\uuf50\\uuf50-0", 1, 1000, file, out, solutions, -1);
 
 	file << "uf75" << endl;
-	CNFTest("uf75\\uf75-0", 1, 100, file, out, solutions, 1);
+	CNFTest("data\\uf75\\uf75-0", 1, 100, file, out, solutions, 1);
 
 	file << "uuf75" << endl;
-	CNFTest("uuf75\\uuf75-0", 1, 100, file, out, solutions, -1);
+	CNFTest("data\\uuf75\\uuf75-0", 1, 100, file, out, solutions, -1);
 	
 	file << "uf100" << endl;
-	CNFTest("uf100\\uf100-0", 1, 1000, file, out, solutions, 1);
+	CNFTest("data\\uf100\\uf100-0", 1, 1000, file, out, solutions, 1);
 
 	file << "uuf100" << endl;
-	CNFTest("uuf100\\uuf100-0", 1, 1000, file, out, solutions, -1);
+	CNFTest("data\\uuf100\\uuf100-0", 1, 1000, file, out, solutions, -1);
 #endif
 
 	out.close();

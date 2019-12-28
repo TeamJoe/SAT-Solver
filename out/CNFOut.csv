@@ -1,0 +1,5 @@
+1,2 (83) (4),1,20,90,data\uf20\uf20-01.cnf,(TRUE),4,(Compile Time: 0.0205105),(Analyze Time: 1.7e-06),(Solve Time: 10.2208),(Output Time: 0.0007302),(Clean Time: 0.0004491),(Total Time: 10.2429)
+2,2 (95) (3),1,20,91,data\uf20\uf20-02.cnf,(TRUE),3,(Compile Time: 0.0208408),(Analyze Time: 2e-06),(Solve Time: 10.0862),(Output Time: 0.0005799),(Clean Time: 0.0004428),(Total Time: 10.1086)
+3,2 (98) (1),1,20,91,data\uf20\uf20-03.cnf,(TRUE),1,(Compile Time: 0.0207951),(Analyze Time: 1.7e-06),(Solve Time: 11.4581),(Output Time: 0.0003031),(Clean Time: 0.0004396),(Total Time: 11.4801)
+4,2 (68) (1),1,20,91,data\uf20\uf20-04.cnf,(TRUE),1,(Compile Time: 0.0206071),(Analyze Time: 1.9e-06),(Solve Time: 10.3808),(Output Time: 0.0003772),(Clean Time: 0.0004457),(Total Time: 10.4026)
+5,2 (61) (1),1,20,91,data\uf20\uf20-05.cnf,(TRUE),1,(Compile Time: 0.0206903),(Analyze Time: 1.8e-06),(Solve Time: 7.34577),(Output Time: 0.0002954),(Clean Time: 0.0004461),(Total Time: 7.3677)

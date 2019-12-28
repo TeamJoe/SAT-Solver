@@ -27,7 +27,9 @@ SATSolver::~SATSolver()
 		this->terminateAllThreads();
 	}
 
+#ifndef COMPLETE
 	assert(this->isTerminatingAllThreads == true);
+#endif
 	assert(this->threads == NULL);
 	assert(this->returnValues == NULL);
 	assert(this->sat == NULL);
@@ -275,7 +277,9 @@ void SATSolver::runSolverParallel(const SAT * sat, const unsigned int threadCoun
 
 
 	// Clean up threads
+#ifndef COMPLETE
 	assert(this->isTerminatingAllThreads == true);
+#endif
 	for(unsigned int i = 0; i < threadCount - 1; i++)
 	{
 		this->threads[i]->join();
