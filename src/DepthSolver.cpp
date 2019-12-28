@@ -421,7 +421,7 @@ SolverState _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSol
 
 	//Get best variable
 	VariableSolutions solution = Decider(var1);
-	assert(solution != VARIABLE_NO_SOLUTION);
+	assert(solution != VariableSolutions::VARIABLE_NO_SOLUTION);
 
 	//Check if chain has a solution
 	solverState->setVariable(var1->getVariable(), solution == VariableSolutions::VARIABLE_POSITIVE || solution == VariableSolutions::MUST_POSITIVE);

@@ -179,7 +179,7 @@ Literal* SAT::createLiteral(const int var)
 
 bool SAT::addClause(const list <Literal*>* clause)
 {
-	assert(clause.size());
+	assert(clause->size());
 	Clause* cla = new Clause(clause, this);
 	assert(cla);
 	assert(cla->Size());
@@ -308,7 +308,7 @@ bool SAT::ReadCNF(ifstream & file)
 	}
 
 	assert(VarCount == this->variables->size());
-	assert(ClauseCount == this->clauses.size() + repeatCount);
+	assert(ClauseCount == this->clauses->size() + repeatCount);
 
 	return true;
 }

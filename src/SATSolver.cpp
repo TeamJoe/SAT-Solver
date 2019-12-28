@@ -167,7 +167,7 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 		}
 		else if (this->returnValues[i]->solved == SolvedStates::COMPLETED_NO_SOLUTION)
 		{
-			assert(solution->solved != COMPLETED_SOLUTION && solution->solved != NOT_COMPLETED_SOLUTION);
+			assert(solution->solved != SolvedStates::COMPLETED_SOLUTION && solution->solved != SolvedStates::NOT_COMPLETED_SOLUTION);
 			assert(this->returnValues[i]->solutions == NULL || this->returnValues[i]->solutions->size() == 0);
 			solution->solved = this->returnValues[i]->solved;
 		}
