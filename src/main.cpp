@@ -12,6 +12,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "Reader.h"
 #include "SAT.h"
 #include "SATState.h"
 #include "SATSolver.h"
@@ -85,9 +86,12 @@ void CNFTest(const char * perfix, const unsigned int start, const unsigned int e
 		cout << i << ":(Compiling)";
 		cout.flush();
 		timer->reset();
-		SAT * sat = new SAT(ss.str().c_str(), true);
+		ifstream file;
+		file.open(ss.str().c_str());
+		SAT* sat = ReadCNF(file);
+		file.close();
 		compileTime = timer->elapsed();
-		assert(sat->isValid());
+		assert(sat != NULL);
 
 		cout << "(Analyzing)";
 		cout.flush();
@@ -218,9 +222,9 @@ void InputTest(const char * fileName, ofstream & out, ofstream & solutions, cons
 		cout << i << ":(Compiling)";
 		cout.flush();
 		timer->reset();
-		SAT * sat = new SAT(file, false);
+		SAT * sat = ReadFrom(file);
 		compileTime = timer->elapsed();
-		if (!sat->isValid())
+		if (sat == NULL)
 		{
 			cout << "(Invalid)" << endl;
 			delete sat;

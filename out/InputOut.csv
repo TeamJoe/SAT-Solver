@@ -1,2 +1,2 @@
-1,2 (10) (2),1,4,8,(TRUE),2,(Compile Time: 0.0018283),(Analyze Time: 2e-06),(Solve Time: 0.0509373),(Output Time: 0.0003235),(Clean Time: 7.52e-05),(Total Time: 0.0542389)
-2,2 (9) (1),1,4,16,(TRUE),1,(Compile Time: 0.0019979),(Analyze Time: 2.6e-06),(Solve Time: 0.0846674),(Output Time: 0.0003918),(Clean Time: 0.0001004),(Total Time: 0.0875829)
+1,2 (10) (2),1,4,8,(TRUE),2,(Compile Time: 0.0019247),(Analyze Time: 1.8e-06),(Solve Time: 0.0492823),(Output Time: 0.0003711),(Clean Time: 7.6e-05),(Total Time: 0.0524386)
+2,2 (9) (1),1,4,16,(TRUE),1,(Compile Time: 0.0021694),(Analyze Time: 2.1e-06),(Solve Time: 0.101471),(Output Time: 0.0003641),(Clean Time: 9.89e-05),(Total Time: 0.104508)

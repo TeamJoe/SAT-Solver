@@ -25,59 +25,6 @@ SAT::SAT()
 {
 	this->variables = new list <Variable*>();
 	this->clauses = new list <Clause*>();
-	this->Valid = true;
-}
-SAT::SAT(ifstream & file, const bool isCNF)
-{
-	this->variables = new list <Variable *>();
-	this->clauses = new list <Clause *>();
-	this->Valid = false;
-
-	if (file.is_open())
-	{
-		if (isCNF)
-		{
-			if (this->ReadCNF(file))
-			{
-				this->Valid = true;
-			}
-		}
-		else
-		{
-			if (this->ReadFrom(file))
-			{
-				this->Valid = true;
-			}
-		}
-	}
-}
-SAT::SAT(const char * input, const bool isCNF)
-{
-	this->variables = new list <Variable *>();
-	this->clauses = new list <Clause *>();
-	this->Valid = false;
-
-	//Create intial information
-	ifstream file;
-	file.open(input);
-	if(file.is_open())
-	{
-		if(isCNF)
-		{
-			if (this->ReadCNF(file))
-			{
-				this->Valid = true;
-			}
-		}
-		else
-		{
-			if (this->ReadFrom(file))
-			{
-				this->Valid = true;
-			}
-		}
-	}
-	file.close();
 }
 SAT::~SAT()
 {
@@ -149,21 +96,6 @@ Variable * SAT::ContainsVariable(const Variable * variable) const
 	}
 	return NULL;
 }
-int SAT::CharToInt(const char c) const
-{
-	if(c >= 'A' && c <= 'Z')
-	{
-		return (int)(c - 64);
-	}
-	else if(c >= 'a' && c <= 'z')
-	{
-		return (int)(-1 * (c - 96));
-	}
-	else
-	{
-		return (int)c;
-	}
-}
 
 Literal* SAT::createLiteral(const int var)
 {
@@ -199,118 +131,35 @@ bool SAT::addClause(const list <Literal*>* clause)
 	}
 }
 
-//******************************
-//------------------------------
-//
-// READ INPUT FUNCTIONS
-//
-//------------------------------
-//******************************
-bool SAT::ReadFrom(ifstream & file)
+bool SAT::addVariable(Variable* variable)
 {
 	assert(this->variables != NULL);
-	assert(this->clauses != NULL);
-
-	if(file.eof())
+	assert(variable != NULL);
+	assert(variable->GetVariable() != 0);
+	assert(variable->GetVariable() > 0);
+	if (ContainsVariable(variable->GetVariable() == NULL))
 	{
-		return false;
+		this->variables->push_back(variable);
+		variable->SetListPointer((--this->variables->cend()));
+		return true;
 	}
-
-	//Read Input
-	unsigned int length;
-	file >> length;
-
-	if (file.eof())
-	{
-		return false;
-	}
-	for(unsigned int i = 0; i < length; i++)
-	{
-		string s;
-		file >> s;
-		if(file.eof())
-		{
-			assert(false);
-			return false;
-		}
-		if(s.size() > 0)
-		{
-			list <Literal *> clause;
-			for(unsigned int i = 0; i < s.size(); i++)
-			{
-				clause.push_back(this->createLiteral(CharToInt(s[i])));
-			}
-			this->addClause(&clause);
-		}
-	}
-
-	return true;
+	return false;
 }
-bool SAT::ReadCNF(ifstream & file)
+
+bool SAT::addClause(const list <int>* clause)
 {
 	assert(this->variables != NULL);
 	assert(this->clauses != NULL);
-
-	if(file.eof())
-	{
-		return false;
+	assert(clause != NULL);
+	if (clause->size()) {
+		list <Literal*> cla;
+		for (list <int>::const_iterator literal = clause->cbegin(); literal != clause->cend(); literal++)
+		{
+			cla.push_back(this->createLiteral(*literal));
+		}
+		return this->addClause(&cla);
 	}
-
-	while(true)
-	{
-		string s;
-		file >> s;
-		if(file.eof())
-		{
-			assert(false);
-			return false;
-		}
-		if(s == "p")
-		{
-			file >> s;
-			if(file.eof() || s != "cnf")
-			{
-				assert(false);
-				return false;
-			}
-			break;
-		}
-	}
-
-	unsigned int VarCount, ClauseCount;
-	file >> VarCount >> ClauseCount;
-
-	//Read inputs
-	list <Literal *> clause;
-	unsigned int repeatCount = 0;
-	for(unsigned int i = 0; i < ClauseCount; i++)
-	{
-		clause.clear();
-		int var;
-		file >> var;
-		if(file.eof())
-		{
-			//unexpected end of file
-			assert(false);
-			//make a new clause and delete it for clean up.
-			Clause * cla = new Clause(&clause, this);
-			delete cla;
-			return false;
-		}
-		while(var != 0)
-		{
-			clause.push_back(this->createLiteral(var));
-			file >> var;
-		}
-		if (!this->addClause(&clause)) {
-			repeatCount++;
-		}
-	}
-
-	assert(VarCount == this->variables->size());
-	assert(ClauseCount == this->clauses->size() + repeatCount);
-
-	return true;
+	return false;
 }
 
 //******************************
@@ -323,10 +172,6 @@ bool SAT::ReadCNF(ifstream & file)
 unsigned int SAT::getIdentifier() const
 {
 	return (unsigned int)(void *)this;
-}
-bool SAT::isValid() const
-{
-	return this->Valid;
 }
 bool SAT::Evaluate(const int * variables) const
 {
