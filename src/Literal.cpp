@@ -49,7 +49,7 @@ Literal::~Literal()
 	this->clause = NULL;
 	this->Value = 0;
 }
-void Literal::SetListPointer(list <Literal *>::const_iterator lit)
+void Literal::SetListPointer(list <Literal *>::const_iterator& lit)
 {
 	assert(*lit == this);
 	this->listPointer = lit;

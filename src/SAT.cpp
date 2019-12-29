@@ -30,6 +30,8 @@ SAT::~SAT()
 {
 	cleanClauses();
 	cleanVariables();
+	this->clauses = NULL;
+	this->variables = NULL;
 }
 SAT* SAT::copy() const
 {
@@ -42,39 +44,55 @@ SAT* SAT::copy() const
 	{
 		assert((*iter)->isValid());
 		Variable* variable = (*iter)->copy(sat);
-		sat->variables->push_back(variable);
-		variable->SetListPointer((--sat->variables->cend()));
+		assert(variable != NULL);
+		assert(variable->_parent == sat);
+		assert(variable->isValid());
 	}
 	for (list <Clause*>::const_iterator iter = this->clauses->cbegin(); iter != this->clauses->cend(); iter++)
 	{
 		assert((*iter)->isValid());
 		Clause* clause = (*iter)->copy(sat);
-		sat->clauses->push_back(clause);
-		clause->SetListPointer((--sat->clauses->cend()));
+		assert(clause != NULL);
+		assert(clause->_parent == sat);
+		assert(clause->isValid());
 	}
 	return sat;
 }
 void SAT::cleanVariables()
 {
 	assert(this->variables != NULL);
-	for(list <Variable *>::const_iterator iter = this->variables->cbegin(); iter != this->variables->cend(); iter++)
+	while (this->variables->size() > 0)
 	{
-		delete *iter;
+#ifdef _DEBUG
+		unsigned int previousSize = this->variables->size();
+#endif
+		assert((*(this->variables->cbegin()))->_parent == this);
+		assert((*(this->variables->cbegin()))->listPointer == this->variables->cbegin());
+		delete* this->variables->cbegin();
+#ifdef _DEBUG
+		assert(this->variables->size() == previousSize - 1);
+#endif
 	}
-	this->variables->clear();
+	assert(this->variables->size() == 0);
 	delete this->variables;
-	this->variables = NULL;
 }
 void SAT::cleanClauses()
 {
 	assert(this->clauses != NULL);
-	for(list <Clause *>::const_iterator iter = this->clauses->cbegin(); iter != this->clauses->cend(); iter++)
+	while (this->clauses->size() > 0)
 	{
-		delete *iter;
+#ifdef _DEBUG
+		unsigned int previousSize = this->clauses->size();
+#endif
+		assert((*(this->clauses->cbegin()))->_parent == this);
+		assert((*(this->clauses->cbegin()))->listPointer == this->clauses->cbegin());
+		delete* this->clauses->cbegin();
+#ifdef _DEBUG
+		assert(this->clauses->size() == previousSize - 1);
+#endif
 	}
-	this->clauses->clear();
+	assert(this->clauses->size() == 0);
 	delete this->clauses;
-	this->clauses = NULL;
 }
 //******************************
 //------------------------------
@@ -127,8 +145,6 @@ Variable* SAT::getOrCreateVariable(const int& var)
 	if (v == NULL)
 	{
 		v = new Variable(var, this);
-		this->variables->push_back(v);
-		v->SetListPointer((--this->variables->cend()));
 	}
 	return v;
 }
@@ -148,17 +164,21 @@ bool SAT::contains(const Variable* variable) const
 	return getVariable(variable) != NULL;
 }
 
-bool SAT::addVariable(Variable* variable)
+bool SAT::addVariable(const int& variable)
 {
 	assert(this->variables != NULL);
-	assert(variable != NULL);
-	assert(variable->isValid());
-	assert(variable->_parent == this);
-	if (getVariable(variable->GetVariable() == NULL))
+	assert(this->clauses != NULL);
+	assert(variable != 0);
+	Variable* var = new Variable(variable, this);
+	assert(var->_parent == this);
+	if (var->isValid())
 	{
-		this->variables->push_back(variable);
-		variable->SetListPointer((--this->variables->cend()));
 		return true;
+	}
+	else
+	{
+		delete var;
+		return false;
 	}
 	return false;
 }
@@ -168,13 +188,11 @@ bool SAT::addClause(const list <int>* clause)
 	assert(this->variables != NULL);
 	assert(this->clauses != NULL);
 	assert(clause != NULL);
-	if (clause->size()) {
+	if (clause->size() > 0) {
 		Clause* cla = new Clause(clause, this);
-		if (cla->isValid() && !getClause(cla))
+		assert(cla->_parent == this);
+		if (cla->isValid())
 		{
-			assert(cla->_parent == this);
-			this->clauses->push_back(cla);
-			cla->SetListPointer((--this->clauses->cend()));
 			return true;
 		}
 		else

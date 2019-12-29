@@ -30,6 +30,10 @@ Variable::Variable(const int Variable_Number, SAT * _parent)
 	assert(this->Variable_Number > 0);
 
 	this->_parent = _parent;
+
+	_parent->variables->push_back(this);
+	this->listPointer = (--_parent->variables->cend());
+	assert(this == *this->listPointer);
 }
 Variable* Variable::copy(SAT* _parent) const
 {
@@ -44,6 +48,7 @@ Variable::~Variable()
 	assert(this->Positives != NULL);
 	assert(this->Negatives != NULL);
 	assert(this->clauses != NULL);
+	assert(this->_parent != NULL);
 	assert(this->Variable_Number != 0);
 
 	while(this->Positives->size() > 0)
@@ -52,6 +57,7 @@ Variable::~Variable()
 			unsigned int previousSize = this->Positives->size();
 		#endif
 		assert((*(this->Positives->cbegin()))->getVariable() == this);
+		assert((*(this->Positives->cbegin()))->listPointer == this->Positives->cbegin());
 		delete *this->Positives->cbegin();
 		#ifdef _DEBUG
 			assert(this->Positives->size() == previousSize - 1);
@@ -67,6 +73,7 @@ Variable::~Variable()
 			unsigned int previousSize = this->Negatives->size();
 		#endif
 		assert((*(this->Negatives->cbegin()))->getVariable() == this);
+		assert((*(this->Negatives->cbegin()))->listPointer == this->Negatives->cbegin());
 		delete *this->Negatives->cbegin();
 		#ifdef _DEBUG
 			assert(this->Negatives->size() == previousSize - 1);
@@ -81,6 +88,8 @@ Variable::~Variable()
 	this->clauses = NULL;
 
 	this->Variable_Number = 0;
+
+	this->_parent->variables->erase(this->listPointer);
 }
 //a debugging sanity check function
 bool doesListContain(Literal * lit, const list <Literal *> * search)
@@ -130,7 +139,7 @@ void Variable::Add(Literal * lit)
 	(*(this->clauses))[clause->getIdentifier()] = clause;
 	assert(this->clauses->find(clause->getIdentifier()) != this->clauses->cend());
 }
-void Variable::Remove(list <Literal *>::const_iterator litIter)
+void Variable::Remove(list <Literal *>::const_iterator& litIter)
 {
 	Literal * lit = *litIter;
 	assert(lit);
@@ -158,12 +167,6 @@ void Variable::Remove(list <Literal *>::const_iterator litIter)
 	assert(this->clauses->find(lit->getClause()->getIdentifier()) != this->clauses->cend());
 	this->clauses->erase(lit->getClause()->getIdentifier());
 	assert(this->clauses->find(lit->getClause()->getIdentifier()) == this->clauses->cend());
-}
-
-void Variable::SetListPointer(list <Variable *>::const_iterator var)
-{
-	assert(*var == this);
-	this->listPointer = var;
 }
 //******************************
 //------------------------------

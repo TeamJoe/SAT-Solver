@@ -25,10 +25,12 @@ Clause::Clause(SAT * _parent)
 }
 Clause::Clause(const list <int> * clause, SAT * _parent)
 {
-	assert(clause);
+	assert(clause != NULL);
+	assert(_parent != NULL);
 	this->clause = NULL;
 	this->_parent = _parent;
 	this->_size = (unsigned int)clause->size();
+
 	if(this->_size > 0)
 	{
 		this->clause = new Literal * [this->_size + 1];
@@ -38,6 +40,7 @@ Clause::Clause(const list <int> * clause, SAT * _parent)
 	assert(this->clause != NULL);
 
 	unsigned int currentSize = 0;
+	//TODO beter sorting method
 	for(list <int>::const_iterator iter = clause->cbegin(); iter != clause->cend(); iter++)
 	{
 		assert(*iter != 0);
@@ -60,6 +63,9 @@ Clause::Clause(const list <int> * clause, SAT * _parent)
 				{
 					delete this->clause[j];
 				}
+				_parent->clauses->push_back(this);
+				this->listPointer = (--_parent->clauses->cend());
+				assert(this == *this->listPointer);
 				return;
 			}
 			else if(*this->clause[y] > *iter)
@@ -98,22 +104,32 @@ Clause::Clause(const list <int> * clause, SAT * _parent)
 	}
 	this->_size = currentSize;
 	assert(this->_size > 0);
+
+	if (_parent->contains(this)) {
+		for (unsigned int j = 0; j < this->_size; j++)
+		{
+			delete this->clause[j];
+		}
+		this->_size = 0;
+	}
+	_parent->clauses->push_back(this);
+	this->listPointer = (--_parent->clauses->cend());
+	assert(this == *this->listPointer);
 }
 Clause::~Clause()
 {
 	assert(this->clause != NULL);
+	assert(this->_parent != NULL);
 	for (unsigned int i = 0; i < this->_size; i++)
 	{
+		assert(this->clause[i] != NULL);
 		delete this->clause[i];
 	}
 	delete [] this->clause;
+
 	this->clause = NULL;
 	this->_size = 0;
-}
-void Clause::SetListPointer(list <Clause *>::const_iterator cla)
-{
-	assert(*cla == this);
-	this->listPointer = cla;
+	this->_parent->clauses->erase(this->listPointer);
 }
 Literal* Clause::createLiteral(const int& var)
 {
@@ -177,6 +193,8 @@ bool Clause::Contains(const Variable * Variable, const bool isPositive) const
 }
 bool Clause::Contains(const Literal * lit) const
 {
+
+	//TODO beter lookup method
 	assert(this->_size > 0);
 	assert(this->clause != NULL);
 	for(unsigned int i = 0; i < this->_size; i++)

@@ -193,6 +193,12 @@ void CNFTest(const char* perfix, const unsigned int start, const unsigned int en
 		compileTime = timer->elapsed();
 		assert(sat != NULL);
 
+#ifdef _DEBUG
+		SAT* sat2 = sat->copy();
+		assert(*sat == *sat2);
+		delete sat2;
+#endif
+
 		out << dec << i << ",";
 		solutions << i;
 		Test(totalTimer, compileTime, sat, ss.str().c_str(), out, solutions, result);
@@ -226,6 +232,13 @@ void InputTest(const char* fileName, ofstream& out, ofstream& solutions, const i
 			delete sat;
 			break;
 		}
+
+#ifdef _DEBUG
+		SAT* sat2 = sat->copy();
+		assert(*sat == *sat2);
+		delete sat2;
+#endif
+
 		out << dec << i << ",";
 		solutions << i;
 		Test(totalTimer, compileTime, sat, fileName, out, solutions, result);

@@ -28,8 +28,7 @@ protected:
 	Variable(const int Variable_Number, SAT * _parent);
 
 	void Add(Literal * lit);
-	void Remove(list <Literal *>::const_iterator litIter);
-	void SetListPointer(list <Variable *>::const_iterator var);
+	void Remove(list <Literal *>::const_iterator& litIter);
 
 	Variable* copy(SAT* _parent) const;
 public:

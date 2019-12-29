@@ -23,7 +23,7 @@ private:
 	bool isDestroying;
 #endif
 protected:
-	void SetListPointer(list <Literal *>::const_iterator lit);
+	void SetListPointer(list <Literal *>::const_iterator& lit);
 public:
 
 	//Constructors

@@ -38,7 +38,7 @@ public:
 
 	SAT* copy() const;
 
-	bool addVariable(Variable* variable);
+	bool addVariable(const int& variables);
 	bool addClause(const list <int> * variables);
 
 	//Checker Functions
@@ -53,6 +53,7 @@ public:
 	bool operator==(const SAT& sat) const;
 	bool operator!=(const SAT& sat) const;
 
+	friend Variable;
 	friend Clause;
 	friend SATState;
 };
