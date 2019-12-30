@@ -17,29 +17,22 @@ using namespace std;
 //
 //------------------------------
 //******************************
-Clause::Clause(SAT * _parent)
-{
-	this->clause = NULL;
-	this->_size = 0;
-	this->_parent = _parent;
-}
 Clause::Clause(const list <int> * clause, SAT * _parent)
 {
 	assert(clause != NULL);
 	assert(_parent != NULL);
 	this->clause = NULL;
 	this->_parent = _parent;
-	this->_size = (unsigned int)clause->size();
 
-	if(this->_size > 0)
+	if(clause->size() > 0)
 	{
-		this->clause = new Literal * [this->_size + 1];
+		this->clause = new Literal * [clause->size() + 1];
 	}
 
-	assert(this->_size > 0);
+	assert(clause->size() > 0);
 	assert(this->clause != NULL);
 
-	unsigned int currentSize = 0;
+	this->_size = 0;
 	//TODO beter sorting method
 	for(list <int>::const_iterator iter = clause->cbegin(); iter != clause->cend(); iter++)
 	{
@@ -47,7 +40,7 @@ Clause::Clause(const list <int> * clause, SAT * _parent)
 		//check for duplicates and opposites
 		//insert literals in numeric order
 		unsigned int y = 0;
-		for(; y < currentSize; y++)
+		for(; y < this->_size; y++)
 		{
 			//duplicate
 			if(this->clause[y]->Contains(*iter))
@@ -58,11 +51,11 @@ Clause::Clause(const list <int> * clause, SAT * _parent)
 			//opposite (Clause will always be true, so remove it)
 			else if(this->clause[y]->Opposite(*iter))
 			{
-				this->_size = 0;
-				for(unsigned int j = 0; j < currentSize; j++)
+				for (; this->_size > 0; this->_size--)
 				{
-					delete this->clause[j];
+					delete this->clause[this->_size - 1];
 				}
+				assert(this->_size == 0);
 				_parent->clauses->push_back(this);
 				this->listPointer = (--_parent->clauses->cend());
 				assert(this == *this->listPointer);
@@ -76,20 +69,19 @@ Clause::Clause(const list <int> * clause, SAT * _parent)
 		//if unique Variable
 		if(y != 0xFFFFFFFF)
 		{
-			assert(y < this->_size);
 			//if needs to be inserted at end
-			if(y == currentSize)
+			Literal * lit = createLiteral(*iter);
+			if(y == this->_size)
 			{
-				this->clause[currentSize++] = createLiteral(*iter);
-				assert(this->clause[currentSize -1]->getClause() == this);
+				this->clause[this->_size++] = lit;
+				assert(this->clause[this->_size -1]->getClause() == this);
 			}
 			//if needs to be inserted inside of list
 			else
 			{
-				for(unsigned int z = currentSize++; ; z--)
+				for(unsigned int z = this->_size++; ; z--)
 				{
-					assert(z <= currentSize);
-					assert(z < this->_size);
+					assert(z <= this->_size);
 					this->clause[z+1] = this->clause[z];
 					if(z <= y)
 					{
@@ -98,19 +90,18 @@ Clause::Clause(const list <int> * clause, SAT * _parent)
 					assert(z != 0);
 				}
 				assert(this->clause[y]->getClause() == this);
-				this->clause[y] = createLiteral(*iter);
+				this->clause[y] = lit;
 			}
 		}
 	}
-	this->_size = currentSize;
 	assert(this->_size > 0);
 
 	if (_parent->contains(this)) {
-		for (unsigned int j = 0; j < this->_size; j++)
+		for (; this->_size > 0; this->_size--)
 		{
-			delete this->clause[j];
+			delete this->clause[this->_size - 1];
 		}
-		this->_size = 0;
+		assert(this->_size == 0);
 	}
 	_parent->clauses->push_back(this);
 	this->listPointer = (--_parent->clauses->cend());
@@ -120,15 +111,14 @@ Clause::~Clause()
 {
 	assert(this->clause != NULL);
 	assert(this->_parent != NULL);
-	for (unsigned int i = 0; i < this->_size; i++)
+	for (; this->_size > 0; this->_size--)
 	{
-		assert(this->clause[i] != NULL);
-		delete this->clause[i];
+		delete this->clause[this->_size - 1];
 	}
+	assert(this->_size == 0);
 	delete [] this->clause;
 
 	this->clause = NULL;
-	this->_size = 0;
 	this->_parent->clauses->erase(this->listPointer);
 }
 Literal* Clause::createLiteral(const int& var)

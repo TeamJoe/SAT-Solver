@@ -1,4 +1,5 @@
 class Variable;
+class CompositeVariable;
 
 #ifndef VARIABLE_H
 #define VARIABLE_H
@@ -22,8 +23,12 @@ private:
 	list <Literal *> * Positives;
 
 	SAT * _parent;
+	map <int, unsigned int> siblingCount;
 	map <unsigned int, Clause *> * clauses;
 	list <Variable *>::const_iterator listPointer;
+
+	void addSibling(Literal* l1, Literal* l2);
+	void removeSibling(Literal* l1, Literal* l2);
 protected: 
 	Variable(const int Variable_Number, SAT * _parent);
 
@@ -53,6 +58,22 @@ public:
 	bool operator<=(const int& variable) const;
 	bool operator>=(const int& variable) const;
 
+	friend Literal;
+	friend SAT;
+	friend VariableState;
+	friend SATState;
+};
+
+class CompositeVariable : protected Variable
+{
+private:
+	Variable* v1;
+	Variable* v2;
+protected:
+	CompositeVariable(Variable* v1, Variable* v2, SAT* _parent);
+
+	CompositeVariable* copy(SAT* _parent) const;
+public:
 	friend Literal;
 	friend SAT;
 	friend VariableState;

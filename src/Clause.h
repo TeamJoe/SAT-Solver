@@ -25,7 +25,6 @@ private:
 
 	Literal* createLiteral(const int& var);
 protected:
-	Clause(SAT * _parent);
 	Clause(const list <int> * clause, SAT * _parent);
 
 	Clause* copy(SAT* _parent) const;
@@ -51,6 +50,7 @@ public:
 	bool operator<=(const Clause & clause) const;
 	bool operator>=(const Clause & clause) const;
 
+	friend Variable;
 	friend Literal;
 	friend SAT;
 	friend ClauseState;

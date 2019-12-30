@@ -53,6 +53,7 @@ public:
 	bool operator==(const SAT& sat) const;
 	bool operator!=(const SAT& sat) const;
 
+	friend CompositeVariable;
 	friend Variable;
 	friend Clause;
 	friend SATState;

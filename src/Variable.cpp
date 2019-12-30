@@ -138,6 +138,18 @@ void Variable::Add(Literal * lit)
 	assert(this->clauses->find(clause->getIdentifier()) == this->clauses->cend());
 	(*(this->clauses))[clause->getIdentifier()] = clause;
 	assert(this->clauses->find(clause->getIdentifier()) != this->clauses->cend());
+
+	//assert(clause->clause[clause->_size - 1] == lit);
+	if (clause->_size != 0) {
+		for (unsigned int i = 0; i < clause->_size; i++)
+		{
+			Literal* l2 = clause->clause[i];
+			assert(lit != l2);
+
+			addSibling(lit, l2);
+			addSibling(l2, lit);
+		}
+	}
 }
 void Variable::Remove(list <Literal *>::const_iterator& litIter)
 {
@@ -167,7 +179,35 @@ void Variable::Remove(list <Literal *>::const_iterator& litIter)
 	assert(this->clauses->find(lit->getClause()->getIdentifier()) != this->clauses->cend());
 	this->clauses->erase(lit->getClause()->getIdentifier());
 	assert(this->clauses->find(lit->getClause()->getIdentifier()) == this->clauses->cend());
+
+	Clause* clause = lit->clause;
+	assert(clause->_size != 0);
+	assert(clause->clause[clause->_size - 1] == lit);
+	for (unsigned int i = 0; i < clause->_size - 1; i++)
+	{
+		Literal* l2 = clause->clause[i];
+		assert(lit != l2);
+
+		removeSibling(lit, l2);
+		removeSibling(l2, lit);
+	}
 }
+
+void Variable::addSibling(Literal* l1, Literal* l2)
+{
+	int value = l2->getValue() * (l1->GetType() ? 1 : -1);
+	map<int, unsigned int>::iterator i1 = l1->variable->siblingCount.find(value);
+	l1->variable->siblingCount.insert_or_assign(value, i1 == l1->variable->siblingCount.end() ? 1 : (i1->second + 1));
+}
+void Variable::removeSibling(Literal* l1, Literal* l2)
+{
+	int value = l2->getValue() * (l1->GetType() ? 1 : -1);
+	map<int, unsigned int>::iterator i1 = l1->variable->siblingCount.find(value);
+	assert(i1 != l1->variable->siblingCount.end());
+	assert(i1->second > 0);
+	l1->variable->siblingCount.insert_or_assign(value, i1->second - 1);
+}
+
 //******************************
 //------------------------------
 //
