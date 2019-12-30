@@ -22,6 +22,7 @@ Variable::Variable(const int Variable_Number, SAT * _parent)
 	this->Negatives = new list <Literal *>();
 	this->Positives = new list <Literal *>();
 	this->clauses = new map <unsigned int, Clause *>();
+	this->siblingCount = new map <int, map<unsigned int, Clause*>*>();
 
 	if(this->Variable_Number < 0)
 	{
@@ -87,6 +88,10 @@ Variable::~Variable()
 	delete this->clauses;
 	this->clauses = NULL;
 
+	assert(this->siblingCount->size() == 0);
+	delete this->siblingCount;
+	this->siblingCount = NULL;
+
 	this->Variable_Number = 0;
 
 	this->_parent->variables->erase(this->listPointer);
@@ -145,13 +150,21 @@ void Variable::Add(Literal * lit)
 	{
 		int sibling = clause->value[i];
 		if (value != sibling) {
-			if (0 == sibling)
-			assert(sibling == 0);
-			if (*this == sibling)
+			assert(sibling != 0);
 			assert(*this != sibling);
 			int key = lit->GetType() ? sibling : (-1 * sibling);
-			map<int, unsigned int>::iterator iter = this->siblingCount.find(key);
-			this->siblingCount.insert_or_assign(key, iter == this->siblingCount.end() ? 1 : (iter->second + 1));
+			map<int, map<unsigned int, Clause*>*>::iterator iter = this->siblingCount->find(key);
+			if (iter == this->siblingCount->end())
+			{
+				map<unsigned int, Clause*>* val = new map<unsigned int, Clause*>();
+				val->insert_or_assign(clause->getIdentifier(), clause);
+				this->siblingCount->insert_or_assign(key, val);
+			}
+			else 
+			{
+				assert(iter->second->find(clause->getIdentifier()) == iter->second->end());
+				iter->second->insert_or_assign(clause->getIdentifier(), clause);
+			}
 		}
 	}
 }
@@ -194,10 +207,21 @@ void Variable::Remove(list <Literal *>::const_iterator& litIter)
 			assert(sibling != 0);
 			assert(*this != sibling);
 			int key = lit->GetType() ? sibling : (-1 * sibling);
-			map<int, unsigned int>::iterator iter = this->siblingCount.find(key);
-			assert(iter != this->siblingCount.end());
-			assert(iter->second > 0);
-			this->siblingCount.insert_or_assign(key, iter->second - 1);
+			map<int, map<unsigned int, Clause*>*>::iterator iter = this->siblingCount->find(key);
+			assert(iter != this->siblingCount->end());
+			assert(iter->second->size() > 0);
+			if (iter->second->size() == 1)
+			{
+				assert(iter->second->find(clause->getIdentifier()) != iter->second->end());
+				delete iter->second;
+				this->siblingCount->erase(iter);
+			}
+			else
+			{
+				assert(iter->second->find(clause->getIdentifier()) != iter->second->end());
+				iter->second->erase(clause->getIdentifier());
+				assert(iter->second->find(clause->getIdentifier()) == iter->second->end());
+			}
 		}
 	}
 }

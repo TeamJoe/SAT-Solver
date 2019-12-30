@@ -23,7 +23,7 @@ private:
 	list <Literal *> * Positives;
 
 	SAT * _parent;
-	map <int, unsigned int> siblingCount;
+	map <int, map<unsigned int, Clause*>*> * siblingCount;
 	map <unsigned int, Clause *> * clauses;
 	list <Variable *>::const_iterator listPointer;
 protected: 
