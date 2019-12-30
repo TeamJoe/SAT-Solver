@@ -21,88 +21,19 @@ Clause::Clause(const list <int> * clause, SAT * _parent)
 {
 	assert(clause != NULL);
 	assert(_parent != NULL);
-	this->clause = NULL;
+
 	this->_parent = _parent;
+	this->_createValue(clause);
+	this->clause = new Literal * [this->_size];
+#ifdef _DEBUG
+	assert(this->_size == this->_value.size());
+#endif
 
-	if(clause->size() > 0)
+	for (unsigned int i = 0; i < this->_size; i++)
 	{
-		this->clause = new Literal * [clause->size() + 1];
+		this->clause[i] = this->createLiteral(this->value[i]);
 	}
 
-	assert(clause->size() > 0);
-	assert(this->clause != NULL);
-
-	this->_size = 0;
-	//TODO beter sorting method
-	for(list <int>::const_iterator iter = clause->cbegin(); iter != clause->cend(); iter++)
-	{
-		assert(*iter != 0);
-		//check for duplicates and opposites
-		//insert literals in numeric order
-		unsigned int y = 0;
-		for(; y < this->_size; y++)
-		{
-			//duplicate
-			if(this->clause[y]->Contains(*iter))
-			{
-				y = 0xFFFFFFFF;
-				break;
-			}
-			//opposite (Clause will always be true, so remove it)
-			else if(this->clause[y]->Opposite(*iter))
-			{
-				for (; this->_size > 0; this->_size--)
-				{
-					delete this->clause[this->_size - 1];
-				}
-				assert(this->_size == 0);
-				_parent->clauses->push_back(this);
-				this->listPointer = (--_parent->clauses->cend());
-				assert(this == *this->listPointer);
-				return;
-			}
-			else if(*this->clause[y] > *iter)
-			{
-				break;
-			}
-		}
-		//if unique Variable
-		if(y != 0xFFFFFFFF)
-		{
-			//if needs to be inserted at end
-			Literal * lit = createLiteral(*iter);
-			if(y == this->_size)
-			{
-				this->clause[this->_size++] = lit;
-				assert(this->clause[this->_size -1]->getClause() == this);
-			}
-			//if needs to be inserted inside of list
-			else
-			{
-				for(unsigned int z = this->_size++; ; z--)
-				{
-					assert(z <= this->_size);
-					this->clause[z+1] = this->clause[z];
-					if(z <= y)
-					{
-						break;
-					}
-					assert(z != 0);
-				}
-				assert(this->clause[y]->getClause() == this);
-				this->clause[y] = lit;
-			}
-		}
-	}
-	assert(this->_size > 0);
-
-	if (_parent->contains(this)) {
-		for (; this->_size > 0; this->_size--)
-		{
-			delete this->clause[this->_size - 1];
-		}
-		assert(this->_size == 0);
-	}
 	_parent->clauses->push_back(this);
 	this->listPointer = (--_parent->clauses->cend());
 	assert(this == *this->listPointer);
@@ -111,15 +42,100 @@ Clause::~Clause()
 {
 	assert(this->clause != NULL);
 	assert(this->_parent != NULL);
-	for (; this->_size > 0; this->_size--)
+	for (unsigned int i = 0; i < this->_size; i++)
 	{
-		delete this->clause[this->_size - 1];
+		delete this->clause[i];
 	}
-	assert(this->_size == 0);
+	delete [] this->value;
 	delete [] this->clause;
+	this->_size = 0;
+#ifdef _DEBUG
+	this->_value.clear();
+#endif
 
 	this->clause = NULL;
+	assert(this == *this->listPointer);
 	this->_parent->clauses->erase(this->listPointer);
+}
+void Clause::_createValue(const list <int>* clause)
+{
+	assert(clause != NULL);
+	assert(clause->size() > 0);
+
+	if (clause->size() > 0)
+	{
+		this->value = new int[clause->size() + 1];
+	}	
+
+	this->_size = 0;
+#ifdef _DEBUG
+	this->_value.clear();
+#endif
+	//TODO beter sorting method
+	for (list <int>::const_iterator iter = clause->cbegin(); iter != clause->cend(); iter++)
+	{
+		assert(*iter != 0);
+		//check for duplicates and opposites
+		//insert literals in numeric order
+		unsigned int y = 0;
+		for (; y < this->_size; y++)
+		{
+			//duplicate
+			if (this->value[y] == *iter)
+			{
+				y = 0xFFFFFFFF;
+				break;
+			}
+			//opposite (Clause will always be true, so remove it)
+			else if (this->value[y] == -1 * *iter)
+			{
+				this->_size = 0;
+#ifdef _DEBUG
+				this->_value.clear();
+#endif
+				return;
+			}
+
+			int var1 = this->value[y] < 0
+				? (-1 * this->value[y])
+				: this->value[y];
+			int var2 = *iter < 0
+				? (-1 * *iter)
+				: *iter;
+			if (var1 > var2)
+			{
+				break;
+			}
+		}
+		//if unique Variable
+		if (y != 0xFFFFFFFF)
+		{
+			//if needs to be inserted at end
+#ifdef _DEBUG
+			this->_value.push_back(*iter);
+#endif
+			if (y == this->_size)
+			{
+				this->value[this->_size++] = *iter;
+			}
+			//if needs to be inserted inside of list
+			else
+			{
+				for (unsigned int z = this->_size++; ; z--)
+				{
+					assert(z <= this->_size);
+					this->value[z + 1] = this->value[z];
+					if (z <= y)
+					{
+						break;
+					}
+					assert(z != 0);
+				}
+				this->value[y] = *iter;
+			}
+		}
+	}
+	assert(this->_size > 0);
 }
 Literal* Clause::createLiteral(const int& var)
 {

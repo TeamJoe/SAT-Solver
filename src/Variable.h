@@ -26,9 +26,6 @@ private:
 	map <int, unsigned int> siblingCount;
 	map <unsigned int, Clause *> * clauses;
 	list <Variable *>::const_iterator listPointer;
-
-	void addSibling(Literal* l1, Literal* l2);
-	void removeSibling(Literal* l1, Literal* l2);
 protected: 
 	Variable(const int Variable_Number, SAT * _parent);
 

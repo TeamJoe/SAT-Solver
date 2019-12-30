@@ -17,12 +17,17 @@ using namespace std;
 class Clause
 {
 private:
+#ifdef _DEBUG
+	list<int> _value;
+#endif
+	int* value;
 	Literal ** clause;
 	unsigned int _size;
 
 	SAT * _parent;
 	list <Clause *>::const_iterator listPointer;
 
+	void _createValue(const list <int>* clause);
 	Literal* createLiteral(const int& var);
 protected:
 	Clause(const list <int> * clause, SAT * _parent);
