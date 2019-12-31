@@ -33,7 +33,10 @@ bool ClauseState::isActive() const
 {
 #if _DEBUG
 	const int * state = this->satState->getState();
-	assert(this->Active != this->clause->Evaluate(state));
+	if (*state == 0)
+		assert(this->Active);
+	else
+		assert(this->Active != this->clause->Evaluate(state));
 	delete [] state;
 #endif
 	return this->Active;
@@ -42,7 +45,10 @@ bool ClauseState::isTrue() const
 {
 #if _DEBUG
 	const int * state = this->satState->getState();
-	assert(this->Active == this->clause->Evaluate(state));
+	if (*state == 0)
+		assert(this->Active);
+	else
+		assert(this->Active != this->clause->Evaluate(state));
 	delete [] state;
 #endif
 	return this->True;

@@ -24,6 +24,12 @@ Clause::Clause(const list <int> * clause, SAT * _parent)
 
 	this->_parent = _parent;
 	this->_createValue(clause);
+
+	if (this->_parent->contains(this)) {
+		this->_size = 0;
+		this->_value.clear();
+	}
+
 	this->clause = new Literal * [this->_size];
 #ifdef _DEBUG
 	assert(this->_size == this->_value.size());
@@ -34,9 +40,7 @@ Clause::Clause(const list <int> * clause, SAT * _parent)
 		this->clause[i] = this->createLiteral(this->value[i]);
 	}
 
-	_parent->clauses->push_back(this);
-	this->listPointer = (--_parent->clauses->cend());
-	assert(this == *this->listPointer);
+	_parent->add(this);
 }
 Clause::~Clause()
 {
@@ -54,8 +58,7 @@ Clause::~Clause()
 #endif
 
 	this->clause = NULL;
-	assert(this == *this->listPointer);
-	this->_parent->clauses->erase(this->listPointer);
+	this->_parent->remove(this);
 }
 void Clause::_createValue(const list <int>* clause)
 {
@@ -199,14 +202,14 @@ bool Clause::Contains(const Variable * Variable, const bool isPositive) const
 }
 bool Clause::Contains(const Literal * lit) const
 {
-
-	//TODO beter lookup method
+	//TODO beter lookup method (because list is sorted)
+	assert(lit != NULL);
 	assert(this->_size > 0);
 	assert(this->clause != NULL);
 	for(unsigned int i = 0; i < this->_size; i++)
 	{
 		assert(this->clause[i]->getClause() == this);
-		if(this->clause[i]->Contains(lit))
+		if(this->value[i] == lit->getValue())
 		{
 			return true;
 		}
@@ -216,12 +219,13 @@ bool Clause::Contains(const Literal * lit) const
 
 bool Clause::Contains(const int lit) const
 {
+	assert(lit != 0);
 	assert(this->_size > 0);
 	assert(this->clause != NULL);
 	for (unsigned int i = 0; i < this->_size; i++)
 	{
 		assert(this->clause[i]->getClause() == this);
-		if (this->clause[i]->Contains(lit))
+		if (this->value[i] == lit)
 		{
 			return true;
 		}
@@ -231,6 +235,8 @@ bool Clause::Contains(const int lit) const
 
 bool Clause::Evaluate(const int * variables) const
 {
+	assert(variables != NULL);
+	assert(*variables != 0);
 	assert(this->_size > 0);
 	assert(this->clause != NULL);
 	if(this->_size < (unsigned int)variables[0])
@@ -264,12 +270,14 @@ bool Clause::Evaluate(const int * variables) const
 }
 bool Clause::Evaluate(const list <int> * variables) const
 {
+	assert(variables != NULL);
 	assert(this->_size > 0);
 	assert(this->clause != NULL);
 	if(this->_size < variables->size())
 	{
 		for(list <int>::const_iterator variable_iter = variables->cbegin(); variable_iter != variables->cend(); variable_iter++)
 		{
+			assert(*variable_iter != 0);
 			if (this->Contains(*variable_iter))
 			{
 				return true;
@@ -283,6 +291,7 @@ bool Clause::Evaluate(const list <int> * variables) const
 		{
 			for(list <int>::const_iterator variable_iter = variables->cbegin(); variable_iter != variables->cend(); variable_iter++)
 			{
+				assert(*variable_iter != 0);
 				assert(this->clause[i]->getClause() == this);
 				if (this->clause[i]->Contains(*variable_iter))
 				{
@@ -307,18 +316,17 @@ bool Clause::isValid() const
 bool Clause::operator==(const Clause & clause) const
 {
 	assert(this->_size > 0);
-	assert(this->clause != NULL);
+	assert(this->value != NULL);
 	assert(clause._size > 0);
-	assert(clause.clause != NULL);
+	assert(clause.value != NULL);
 	if(this->_size != clause._size)
 	{
 		return false;
 	}
 	for(unsigned int i = 0; i < this->_size; i++)
 	{
-		if(!this->Contains(clause.clause[i]))
+		if(!this->Contains(clause.value[i]))
 		{
-			assert(this->clause[i]->getClause() == this);
 			return false;
 		}
 	}
@@ -327,9 +335,9 @@ bool Clause::operator==(const Clause & clause) const
 bool Clause::operator!=(const Clause & clause) const
 {
 	assert(this->_size > 0);
-	assert(this->clause != NULL);
+	assert(this->value != NULL);
 	assert(clause._size > 0);
-	assert(clause.clause != NULL);
+	assert(clause.value != NULL);
 	return !(*this == clause);
 }
 bool Clause::operator<(const Clause & clause) const

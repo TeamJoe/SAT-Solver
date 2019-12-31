@@ -26,6 +26,11 @@ private:
 
 	void cleanVariables();
 	void cleanClauses();
+
+	bool add(Variable* variable);
+	bool add(Clause* variable);
+	bool remove(Variable* variable);
+	bool remove(Clause* variable);
 protected:
 	Variable* getOrCreateVariable(const int& var);
 	bool contains(const Clause* clause) const;

@@ -31,10 +31,7 @@ Variable::Variable(const int Variable_Number, SAT * _parent)
 	assert(this->Variable_Number > 0);
 
 	this->_parent = _parent;
-
-	_parent->variables->push_back(this);
-	this->listPointer = (--_parent->variables->cend());
-	assert(this == *this->listPointer);
+	this->_parent->add(this);
 }
 Variable* Variable::copy(SAT* _parent) const
 {
@@ -93,8 +90,7 @@ Variable::~Variable()
 	this->siblingCount = NULL;
 
 	this->Variable_Number = 0;
-
-	this->_parent->variables->erase(this->listPointer);
+	this->_parent->remove(this);
 }
 //a debugging sanity check function
 bool doesListContain(Literal * lit, const list <Literal *> * search)
