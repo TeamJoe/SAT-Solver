@@ -11,18 +11,21 @@
 
 using namespace std;
 
-int getValue(Variable* v1, Variable* v2)
+int getValue(Variable* v)
 {
-	return v1 > v2 ? v1->GetVariable() + v2->GetVariable() * 100000 : v2->GetVariable() + v1->GetVariable() * 100000;
+	return v->getIdentifier() < 1 ? (-1 * (v->getIdentifier() + 1)) : v->getIdentifier();
 }
 
-CompositeVariable::CompositeVariable(Variable* v1, Variable* v2, SAT* _parent): Variable(getValue(v1, v2), _parent)
+CompositeVariable::CompositeVariable(Variable* v1, Variable* v2, bool isOpposite, SAT* _parent): Variable(getValue(this), _parent)
 {
 	this->v1 = v1 > v2 ? v2 : v1;
 	this->v2 = v1 > v2 ? v1 : v2;
+	this->isOpposite = isOpposite;
+	assert(this->GetVariable() != 0);
+	assert(this->GetVariable() > 0);
 }
 
 CompositeVariable* CompositeVariable::copy(SAT* _parent) const
 {
-	return new CompositeVariable(_parent->getVariable(v1->GetVariable()), _parent->getVariable(v2->GetVariable()), _parent);
+	return new CompositeVariable(_parent->getVariable(v1->GetVariable()), _parent->getVariable(v2->GetVariable()), this->isOpposite, _parent);
 }

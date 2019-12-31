@@ -1,3 +1,2 @@
 Count,Per Function|Final State (Variable Evaluations) (Solutions Found)|,Expected Results,Variable Count,Clause Count,File Location,Result,Solution Count,Compile Time,Analyze Time,Solve Time,Output Time,Clean Time,Total Time
-1,|2 (33) (1)|,1,20,90,data\uf20\uf20-01.cnf,(TRUE),1,0.0324621,1.8e-06,4.8575,0.0002844,0.0004392,4.93785
-2,
+1,

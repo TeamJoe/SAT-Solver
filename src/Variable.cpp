@@ -18,7 +18,7 @@
 Variable::Variable(const int Variable_Number, SAT * _parent)
 {
 	assert(Variable_Number != 0);
-	this->Variable_Number = Variable_Number;
+	this->Variable_Number = Variable_Number < 0 ? -1 * Variable_Number : Variable_Number;
 	this->Negatives = new list <Literal *>();
 	this->Positives = new list <Literal *>();
 	this->clauses = new map <unsigned int, Clause *>();

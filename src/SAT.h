@@ -42,6 +42,7 @@ public:
 	~SAT();
 
 	SAT* copy() const;
+	SAT* reduce(const unsigned int& maxClauseSize) const;
 
 	bool addVariable(const int& variables);
 	bool addClause(const list <int> * variables);
@@ -52,6 +53,7 @@ public:
 	bool Evaluate(const list <int> * variables) const;
 
 	//Solver Functions
+	unsigned int maxClauseSize() const;
 	unsigned int ClauseCount() const;
 	unsigned int VariableCount() const;
 

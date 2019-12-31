@@ -54,7 +54,14 @@ private:
 
 void Test(Timer* totalTimer, double compileTime, SAT* sat, const char* fileName, ofstream& out, ofstream& solutions, const int result) {
 	assert(sat != NULL);
+#ifdef _DEBUG
+	SAT* sat2 = sat->copy();
+	assert(*sat == *sat2);
+	delete sat2;
 
+	sat2 = sat->reduce(2);
+	delete sat2;
+#endif
 	Timer* timer = new Timer();
 
 	double analyzeTime = 0;
@@ -193,12 +200,6 @@ void CNFTest(const char* perfix, const unsigned int start, const unsigned int en
 		compileTime = timer->elapsed();
 		assert(sat != NULL);
 
-#ifdef _DEBUG
-		SAT* sat2 = sat->copy();
-		assert(*sat == *sat2);
-		delete sat2;
-#endif
-
 		out << dec << i << ",";
 		solutions << i;
 		Test(totalTimer, compileTime, sat, ss.str().c_str(), out, solutions, result);
@@ -232,12 +233,6 @@ void InputTest(const char* fileName, ofstream& out, ofstream& solutions, const i
 			delete sat;
 			break;
 		}
-
-#ifdef _DEBUG
-		SAT* sat2 = sat->copy();
-		assert(*sat == *sat2);
-		delete sat2;
-#endif
 
 		out << dec << i << ",";
 		solutions << i;

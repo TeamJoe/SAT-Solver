@@ -66,8 +66,9 @@ class CompositeVariable : protected Variable
 private:
 	Variable* v1;
 	Variable* v2;
+	bool isOpposite;
 protected:
-	CompositeVariable(Variable* v1, Variable* v2, SAT* _parent);
+	CompositeVariable(Variable* v1, Variable* v2, bool isOpposite, SAT* _parent);
 
 	CompositeVariable* copy(SAT* _parent) const;
 public:

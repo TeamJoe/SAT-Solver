@@ -27,7 +27,9 @@ Clause::Clause(const list <int> * clause, SAT * _parent)
 
 	if (this->_parent->contains(this)) {
 		this->_size = 0;
+#ifdef _DEBUG
 		this->_value.clear();
+#endif
 	}
 
 	this->clause = new Literal * [this->_size];

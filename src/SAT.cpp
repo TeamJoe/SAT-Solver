@@ -58,6 +58,77 @@ SAT* SAT::copy() const
 	}
 	return sat;
 }
+SAT* SAT::reduce(const unsigned int& maxClauseSize) const
+{
+	assert(maxClauseSize > 0);
+	list<int> newClause;
+	map <int, map<unsigned int, Clause*>*>::const_iterator clauses;
+	SAT* reduced = this->copy();
+	while(reduced->maxClauseSize() > maxClauseSize) {
+		Variable* var1 = NULL;
+		Variable* var2;
+		unsigned int size = 0;
+		for (list <Variable*>::const_iterator varIter = reduced->variables->cbegin(); varIter != reduced->variables->cend(); varIter++)
+		{
+			for (map <int, map<unsigned int, Clause*>*>::const_iterator iter2 = (*varIter)->siblingCount->cbegin(); iter2 != (*varIter)->siblingCount->cend(); iter2++)
+			{
+				if (iter2->second->size() > size) 
+				{
+					size = iter2->second->size();
+					clauses = iter2;
+					var1 = *varIter;
+				}
+			}
+		}
+
+		assert(var1 != NULL);
+		assert(size > 0);
+		var2 = reduced->getVariable(clauses->first);
+		assert(var2 != NULL);
+		Variable* newVar = new CompositeVariable(var1, var2, clauses->first < 0, reduced);
+
+		for (map<unsigned int, Clause*>::const_iterator clauseIter = clauses->second->cbegin(); ; )
+		{
+			newClause.clear();
+			Clause* clause = clauseIter->second;
+			assert(clause->Contains(var1));
+			assert(clause->Contains(var2));
+			if (clause->Contains(var1->GetVariable()))
+			{
+				assert(clause->Contains(clauses->first));
+				newClause.push_back(newVar->GetVariable());
+			}
+			else 
+			{
+				assert(clause->Contains(-1 * clauses->first));
+				newClause.push_back(-1 * newVar->GetVariable());
+			}
+
+			for (int i = 0; i < clause->_size; i++) {
+				if (*var1 != clause->value[i]
+					&& *var2 != clause->value[i]) {
+					newClause.push_back(clause->value[i]);
+				}
+			}
+			if((newClause.size() + 1) != clause->_size)
+			assert((newClause.size() + 1) == clause->_size);
+			clauseIter++;
+			if (clauseIter == clauses->second->cend()) {
+
+				delete clause;
+				clause = new Clause(&newClause, reduced);
+				assert(!clause->Contains(var1));
+				assert(!clause->Contains(var2));
+				break;
+			}
+			delete clause;
+			clause = new Clause(&newClause, reduced);
+			assert(!clause->Contains(var1));
+			assert(!clause->Contains(var2));
+		}
+	}
+	return reduced;
+}
 void SAT::cleanVariables()
 {
 	assert(this->variables != NULL);
@@ -99,6 +170,7 @@ bool SAT::add(Variable* variable)
 	assert(variable != NULL);
 	assert(this->variables != NULL);
 	assert(variable->_parent == this);
+	if(!(!variable->isValid() || !this->contains(variable)))
 	assert(!variable->isValid() || !this->contains(variable));
 	this->variables->push_back(variable);
 	variable->listPointer = (--this->variables->cend());
@@ -295,6 +367,21 @@ bool SAT::Evaluate(const list <int> * variables) const
 //
 //------------------------------
 //******************************
+
+unsigned int SAT::maxClauseSize() const
+{
+	assert(this->clauses != NULL);
+	unsigned int max = 0;
+	for (list <Clause*>::const_iterator iter = this->clauses->cbegin(); iter != this->clauses->cend(); iter++)
+	{
+		if ((*iter)->_size > max)
+		{
+			max = (*iter)->_size;
+		}
+	}
+	return max;
+}
+
 unsigned int SAT::ClauseCount() const
 {
 	assert(this->clauses != NULL);
