@@ -1,3 +1,6 @@
+7 AB Ab ac Ac BC Bc ab
 12 aCD aCD bCD AcD Abd Bcd ACd ACD aCd AcD ACD aCD
+14 aCD aCD bCD AcD Abd Bcd ACd ACD aCd AcD ACD aCD aBc abc
+11 abc aBc abd aBd Abd ABd aCD AcD ACd ACD bCD
 16 ABD aBD AbD ACD aCD AcD BCD bCD BcD ABC aBC AbC abC ABc aBc bcd
 3 aaA aBb abb

@@ -11,9 +11,11 @@
 
 using namespace std;
 
+int value = 100000;
+
 int getValue(Variable* v)
 {
-	return v->getIdentifier() < 1 ? (-1 * (v->getIdentifier() + 1)) : v->getIdentifier();
+	return value++;
 }
 
 CompositeVariable::CompositeVariable(Variable* v1, Variable* v2, bool isOpposite, SAT* _parent): Variable(getValue(this), _parent)

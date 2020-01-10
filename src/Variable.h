@@ -23,9 +23,13 @@ private:
 	list <Literal *> * Positives;
 
 	SAT * _parent;
-	map <int, map<unsigned int, Clause*>*> * siblingCount;
+	map <int, map<unsigned int, Clause*>*>* positiveSiblingCount;
+	map <int, map<unsigned int, Clause*>*>* negativeSiblingCount;
 	map <unsigned int, Clause *> * clauses;
 	list <Variable *>::const_iterator listPointer;
+
+	void addSiblings(Literal* lit, map <int, map<unsigned int, Clause*>*>* sibilings);
+	void removeSiblings(Literal* lit, map <int, map<unsigned int, Clause*>*>* sibilings);
 protected: 
 	Variable(const int Variable_Number, SAT * _parent);
 

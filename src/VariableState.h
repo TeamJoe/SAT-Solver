@@ -28,6 +28,13 @@ private:
 	unsigned int PositivesSize;
 	vector <unsigned int> * NegativeClauseSizes;
 	vector <unsigned int> * PositiveClauseSizes;
+
+	double probabiltyPositiveFirstStep;
+
+#ifdef SIBLING_CALCULATIONS
+	map <int, int>* positiveSiblingCount;
+	map <int, int>* negativeSiblingCount;
+#endif
 protected:
 	VariableState(SATState * sat, const Variable * v);
 	VariableState(SATState * sat, VariableState * v);

@@ -64,7 +64,10 @@ SAT* SAT::reduce(const unsigned int& maxClauseSize) const
 	list<int> newClause;
 	map <int, map<unsigned int, Clause*>*>::const_iterator clauses;
 	SAT* reduced = this->copy();
-	while(reduced->maxClauseSize() > maxClauseSize) {
+
+
+	// Doesn't work - bad boolean logic
+	/*while(reduced->maxClauseSize() > maxClauseSize) {
 		Variable* var1 = NULL;
 		Variable* var2;
 		unsigned int size = 0;
@@ -114,7 +117,6 @@ SAT* SAT::reduce(const unsigned int& maxClauseSize) const
 			assert((newClause.size() + 1) == clause->_size);
 			clauseIter++;
 			if (clauseIter == clauses->second->cend()) {
-
 				delete clause;
 				clause = new Clause(&newClause, reduced);
 				assert(!clause->Contains(var1));
@@ -126,7 +128,7 @@ SAT* SAT::reduce(const unsigned int& maxClauseSize) const
 			assert(!clause->Contains(var1));
 			assert(!clause->Contains(var2));
 		}
-	}
+	}*/
 	return reduced;
 }
 void SAT::cleanVariables()

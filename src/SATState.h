@@ -36,7 +36,6 @@ private:
 
 	unsigned int variableAttempts;
 protected:
-	void reset();
 	ClauseState * _getState(const Clause * clause);
 	VariableState * _getState(const Variable * variable);
 public:

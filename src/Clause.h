@@ -58,6 +58,7 @@ public:
 	friend Variable;
 	friend Literal;
 	friend SAT;
+	friend VariableState;
 	friend ClauseState;
 	friend SATState;
 };

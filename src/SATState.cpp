@@ -36,6 +36,8 @@ SATState::SATState(const SAT * sat)
 		(*(this->variables))[newVariableState->getVariable()->getIdentifier()] = newVariableState;
 		assert(this->variables->find(newVariableState->getVariable()->getIdentifier()) != this->variables->cend());
 	}
+
+	// TODO: Basic solving (resolving single size clauses, and variables without opposites
 }
 
 SATState::SATState(const SATState * oldState)
@@ -86,29 +88,14 @@ SATState::~SATState() {
 	this->clauses = NULL;
 }
 
-void SATState::reset()
-{
-	//Loop not current required as the variables do nothing on reset
-	assert(this->variables != NULL);
-	/*for(map <unsigned int, VariableState *>::const_iterator iter = this->variables->cbegin(); iter != this->variables->cend(); iter++)
-	{
-		iter->second->reset();
-	}*/
-
-	//Loop not current required as the clauses do nothing on reset
-	assert(this->clauses != NULL);
-	/*for(map <unsigned int, ClauseState *>::const_iterator iter = this->clauses->cbegin(); iter != this->clauses->cend(); iter++)
-	{
-		iter->second->reset();
-	}*/
-}
-
 bool SATState::isActive(const Clause * clause) const
 {
+	assert(this->clauses->find(clause->getIdentifier()) != this->clauses->cend());
 	return this->clauses->find(clause->getIdentifier())->second->isActive();
 }
 bool SATState::isActive(const Variable * variable) const
 {
+	assert(this->variables->find(variable->getIdentifier()) != this->variables->cend());
 	return this->variables->find(variable->getIdentifier())->second->isActive();
 }
 
@@ -118,24 +105,29 @@ const SAT * SATState::getSAT() const
 }
 ClauseState * SATState::_getState(const Clause * clause)
 {
+	assert(this->clauses->find(clause->getIdentifier()) != this->clauses->cend());
 	return this->clauses->find(clause->getIdentifier())->second;
 }
 VariableState * SATState::_getState(const Variable * variable)
 {
+	assert(this->variables->find(variable->getIdentifier()) != this->variables->cend());
 	return this->variables->find(variable->getIdentifier())->second;
 }
 
 const ClauseState * SATState::getState(const Clause * clause) const
 {
+	assert(this->clauses->find(clause->getIdentifier()) != this->clauses->cend());
 	return this->clauses->find(clause->getIdentifier())->second;
 }
 const VariableState * SATState::getState(const Variable * variable) const
 {
+	assert(this->variables->find(variable->getIdentifier()) != this->variables->cend());
 	return this->variables->find(variable->getIdentifier())->second;
 }
 
 void SATState::setVariable(const Variable * variable, const bool state)
 {
+	assert(this->variables->find(variable->getIdentifier()) != this->variables->cend());
 	VariableState * variableState = this->_getState(variable);
 	if (variableState->isActive())
 	{

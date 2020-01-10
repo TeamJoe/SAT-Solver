@@ -54,8 +54,9 @@ private:
 
 void Test(Timer* totalTimer, double compileTime, SAT* sat, const char* fileName, ofstream& out, ofstream& solutions, const int result) {
 	assert(sat != NULL);
+	SAT* sat2;
 #ifdef _DEBUG
-	SAT* sat2 = sat->copy();
+	sat2 = sat->copy();
 	assert(*sat == *sat2);
 	delete sat2;
 

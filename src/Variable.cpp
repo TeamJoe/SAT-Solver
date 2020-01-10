@@ -22,7 +22,8 @@ Variable::Variable(const int Variable_Number, SAT * _parent)
 	this->Negatives = new list <Literal *>();
 	this->Positives = new list <Literal *>();
 	this->clauses = new map <unsigned int, Clause *>();
-	this->siblingCount = new map <int, map<unsigned int, Clause*>*>();
+	this->positiveSiblingCount = new map <int, map<unsigned int, Clause*>*>();
+	this->negativeSiblingCount = new map <int, map<unsigned int, Clause*>*>();
 
 	if(this->Variable_Number < 0)
 	{
@@ -85,9 +86,13 @@ Variable::~Variable()
 	delete this->clauses;
 	this->clauses = NULL;
 
-	assert(this->siblingCount->size() == 0);
-	delete this->siblingCount;
-	this->siblingCount = NULL;
+	assert(this->negativeSiblingCount->size() == 0);
+	delete this->negativeSiblingCount;
+	this->negativeSiblingCount = NULL;
+
+	assert(this->positiveSiblingCount->size() == 0);
+	delete this->positiveSiblingCount;
+	this->positiveSiblingCount = NULL;
 
 	this->Variable_Number = 0;
 	this->_parent->remove(this);
@@ -125,6 +130,8 @@ void Variable::Add(Literal * lit)
 
 		assert(doesListContain(lit, this->Positives));
 		assert(!doesListContain(lit, this->Negatives));
+
+		addSiblings(lit, this->positiveSiblingCount);
 	}
 	else
 	{
@@ -133,37 +140,16 @@ void Variable::Add(Literal * lit)
 
 		assert(!doesListContain(lit, this->Positives));
 		assert(doesListContain(lit, this->Negatives));
+
+		addSiblings(lit, this->negativeSiblingCount);
 	}
 
 	Clause * clause = lit->clause;
 	assert(this->clauses->find(clause->getIdentifier()) == this->clauses->cend());
 	(*(this->clauses))[clause->getIdentifier()] = clause;
 	assert(this->clauses->find(clause->getIdentifier()) != this->clauses->cend());
-
-	assert(clause->_size != 0);
-	int value = lit->getValue();
-	for (unsigned int i = 0; i < clause->_size; i++)
-	{
-		int sibling = clause->value[i];
-		if (value != sibling) {
-			assert(sibling != 0);
-			assert(*this != sibling);
-			int key = lit->GetType() ? sibling : (-1 * sibling);
-			map<int, map<unsigned int, Clause*>*>::iterator iter = this->siblingCount->find(key);
-			if (iter == this->siblingCount->end())
-			{
-				map<unsigned int, Clause*>* val = new map<unsigned int, Clause*>();
-				val->insert_or_assign(clause->getIdentifier(), clause);
-				this->siblingCount->insert_or_assign(key, val);
-			}
-			else 
-			{
-				assert(iter->second->find(clause->getIdentifier()) == iter->second->end());
-				iter->second->insert_or_assign(clause->getIdentifier(), clause);
-			}
-		}
-	}
 }
+
 void Variable::Remove(list <Literal *>::const_iterator& litIter)
 {
 	Literal * lit = *litIter;
@@ -176,6 +162,8 @@ void Variable::Remove(list <Literal *>::const_iterator& litIter)
 		assert(this->Negatives == NULL || !doesListContain(lit, this->Negatives));
 		assert(doesListContain(lit, this->Positives));
 		this->Positives->erase(litIter);
+
+		removeSiblings(lit, this->positiveSiblingCount);
 	}
 	else
 	{
@@ -183,6 +171,8 @@ void Variable::Remove(list <Literal *>::const_iterator& litIter)
 		assert(this->Positives == NULL || !doesListContain(lit, this->Positives));
 		assert(doesListContain(lit, this->Negatives));
 		this->Negatives->erase(litIter);
+
+		removeSiblings(lit, this->negativeSiblingCount);
 	}
 
 	assert(this->Positives == NULL || !doesListContain(lit, this->Positives));
@@ -193,6 +183,11 @@ void Variable::Remove(list <Literal *>::const_iterator& litIter)
 	this->clauses->erase(lit->getClause()->getIdentifier());
 	assert(this->clauses->find(lit->getClause()->getIdentifier()) == this->clauses->cend());
 
+
+}
+
+void Variable::addSiblings(Literal* lit, map <int, map<unsigned int, Clause*>*>* sibilings)
+{
 	Clause* clause = lit->clause;
 	assert(clause->_size != 0);
 	int value = lit->getValue();
@@ -202,15 +197,41 @@ void Variable::Remove(list <Literal *>::const_iterator& litIter)
 		if (value != sibling) {
 			assert(sibling != 0);
 			assert(*this != sibling);
-			int key = lit->GetType() ? sibling : (-1 * sibling);
-			map<int, map<unsigned int, Clause*>*>::iterator iter = this->siblingCount->find(key);
-			assert(iter != this->siblingCount->end());
+			map<int, map<unsigned int, Clause*>*>::iterator iter = sibilings->find(sibling);
+			if (iter == sibilings->end())
+			{
+				map<unsigned int, Clause*>* val = new map<unsigned int, Clause*>();
+				val->insert_or_assign(clause->getIdentifier(), clause);
+				sibilings->insert_or_assign(sibling, val);
+			}
+			else
+			{
+				assert(iter->second->find(clause->getIdentifier()) == iter->second->end());
+				iter->second->insert_or_assign(clause->getIdentifier(), clause);
+			}
+		}
+	}
+}
+
+void Variable::removeSiblings(Literal* lit, map <int, map<unsigned int, Clause*>*>* sibilings)
+{
+	Clause* clause = lit->clause;
+	assert(clause->_size != 0);
+	int value = lit->getValue();
+	for (unsigned int i = 0; i < clause->_size; i++)
+	{
+		int sibling = clause->value[i];
+		if (value != sibling) {
+			assert(sibling != 0);
+			assert(*this != sibling);
+			map<int, map<unsigned int, Clause*>*>::iterator iter = sibilings->find(sibling);
+			assert(iter != sibilings->end());
 			assert(iter->second->size() > 0);
 			if (iter->second->size() == 1)
 			{
 				assert(iter->second->find(clause->getIdentifier()) != iter->second->end());
 				delete iter->second;
-				this->siblingCount->erase(iter);
+				sibilings->erase(iter);
 			}
 			else
 			{
@@ -221,6 +242,7 @@ void Variable::Remove(list <Literal *>::const_iterator& litIter)
 		}
 	}
 }
+
 //******************************
 //------------------------------
 //

@@ -21,6 +21,10 @@ VariableState::VariableState(SATState * sat, const Variable * v)
 	this->True = false;
 	this->NegativesSize = 0;
 	this->PositivesSize = 0;
+#ifdef SIBLING_CALCULATIONS
+	this->positiveSiblingCount = NULL;
+	this->negativeSiblingCount = NULL;
+#endif
 	this->NegativeClauseSizes = NULL;
 	this->PositiveClauseSizes = NULL;
 
@@ -91,10 +95,47 @@ VariableState::VariableState(SATState * sat, const Variable * v)
 			this->NegativesSize++;
 		}
 	}
-
 	assert(this->NegativesSize + this->PositivesSize == clauses->size());
 	assert(this->NegativeClauseSizes != NULL);
 	assert(this->PositiveClauseSizes != NULL);
+
+#ifdef SIBLING_CALCULATIONS
+	this->positiveSiblingCount = new map <int, int>();
+	this->negativeSiblingCount = new map <int, int>();
+	for (map <int, map<unsigned int, Clause*>*>::const_iterator iter = v->positiveSiblingCount->cbegin(); iter != v->positiveSiblingCount->cend(); iter++)
+	{
+		this->positiveSiblingCount->insert_or_assign(iter->first, iter->second->size());
+		if (this->positiveSiblingCount->find(-1 * iter->first) == this->positiveSiblingCount->cend())
+		{
+			this->positiveSiblingCount->insert_or_assign(-1 * iter->first, 0);
+		}
+		this->negativeSiblingCount->insert_or_assign(iter->first, 0);
+		this->negativeSiblingCount->insert_or_assign(-1 * iter->first, 0);
+	}
+	assert(this->positiveSiblingCount->size() >= v->positiveSiblingCount->size());
+	assert(this->positiveSiblingCount->size() == this->negativeSiblingCount->size());
+
+	for (map <int, map<unsigned int, Clause*>*>::const_iterator iter = v->negativeSiblingCount->cbegin(); iter != v->negativeSiblingCount->cend(); iter++)
+	{
+		this->negativeSiblingCount->insert_or_assign(iter->first, iter->second->size());
+		if (this->negativeSiblingCount->find(-1 * iter->first) == this->negativeSiblingCount->cend())
+		{
+			this->negativeSiblingCount->insert_or_assign(-1 * iter->first, 0);
+		}
+		if (this->positiveSiblingCount->find(iter->first) == this->positiveSiblingCount->cend())
+		{
+			this->positiveSiblingCount->insert_or_assign(iter->first, 0);
+		}
+		if (this->positiveSiblingCount->find(-1 * iter->first) == this->positiveSiblingCount->cend())
+		{
+			this->positiveSiblingCount->insert_or_assign(-1 * iter->first, 0);
+		}
+	}
+	assert(this->negativeSiblingCount->size() >= v->negativeSiblingCount->size());
+	assert(this->positiveSiblingCount->size() == this->negativeSiblingCount->size());
+#endif
+
+	this->probabiltyPositiveFirstStep = this->NegativesSize == 0 ? 1.0 : ((double)this->PositivesSize) / ((double)(this->NegativesSize + this->PositivesSize));
 }
 VariableState::VariableState(SATState * sat, VariableState * v)
 {
@@ -106,6 +147,11 @@ VariableState::VariableState(SATState * sat, VariableState * v)
 	this->PositivesSize = v->PositivesSize;
 	this->NegativeClauseSizes = new vector <unsigned int>(v->NegativeClauseSizes->size());
 	this->PositiveClauseSizes = new vector <unsigned int>(v->PositiveClauseSizes->size());
+
+#ifdef SIBLING_CALCULATIONS
+	this->positiveSiblingCount = new map <int, int>();
+	this->negativeSiblingCount = new map <int, int>();
+#endif
 
 	this->ActiveClauses = new map <unsigned int, ClauseState *>();
 	for(map <unsigned int, ClauseState *>::const_iterator iter = v->ActiveClauses->cbegin(); iter !=  v->ActiveClauses->cend(); iter++)
@@ -130,6 +176,23 @@ VariableState::VariableState(SATState * sat, VariableState * v)
 		assert(this->InactiveClauses->find(clauseState->getClause()->getIdentifier()) != this->InactiveClauses->cend());
 	}
 	assert(this->InactiveClauses->size() == v->InactiveClauses->size());
+
+#ifdef SIBLING_CALCULATIONS
+	for (map <int, int>::const_iterator iter = v->positiveSiblingCount->cbegin(); iter != v->positiveSiblingCount->cend(); iter++)
+	{
+		this->positiveSiblingCount->insert_or_assign(iter->first, iter->second);
+	}
+	assert(this->positiveSiblingCount->size() == v->positiveSiblingCount->size());
+
+	for (map <int, int>::const_iterator iter = v->negativeSiblingCount->cbegin(); iter != v->negativeSiblingCount->cend(); iter++)
+	{
+		this->negativeSiblingCount->insert_or_assign(iter->first, iter->second);
+	}
+	assert(this->negativeSiblingCount->size() == v->negativeSiblingCount->size());
+	assert(this->positiveSiblingCount->size() == this->negativeSiblingCount->size());
+#endif
+
+	this->probabiltyPositiveFirstStep = v->probabiltyPositiveFirstStep;
 }
 VariableState::~VariableState()
 {
@@ -149,6 +212,16 @@ VariableState::~VariableState()
 		delete this->InactiveClauses;
 		this->InactiveClauses= NULL;
 	}
+#ifdef SIBLING_CALCULATIONS
+	if (this->positiveSiblingCount != NULL) {
+		delete this->positiveSiblingCount;
+		this->positiveSiblingCount = NULL;
+	}
+	if (this->negativeSiblingCount != NULL) {
+		delete this->negativeSiblingCount;
+		this->negativeSiblingCount = NULL;
+	}
+#endif
 }
 
 #ifdef _DEBUG
@@ -159,16 +232,40 @@ void VariableState::checkState() const
 	vector <unsigned int> * negativeClauseSizes = new vector <unsigned int>();
 	vector <unsigned int> * positiveClauseSizes = new vector <unsigned int>();
 
+	for (map <unsigned int, ClauseState*>::const_iterator iter = this->satState->clauses->cbegin(); iter != this->satState->clauses->cend(); iter++)
+	{
+		if (iter->second->getClause()->Contains(this->variable))
+		{
+			if (iter->second->isActive())
+			{
+				assert(this->ActiveClauses->find(iter->second->getClause()->getIdentifier()) != this->ActiveClauses->cend());
+				assert(this->InactiveClauses->find(iter->second->getClause()->getIdentifier()) == this->InactiveClauses->cend());
+			}
+			else
+			{
+				assert(this->ActiveClauses->find(iter->second->getClause()->getIdentifier()) == this->ActiveClauses->cend());
+				assert(this->InactiveClauses->find(iter->second->getClause()->getIdentifier()) != this->InactiveClauses->cend());
+			}
+		}
+		else
+		{
+			assert(this->ActiveClauses->find(iter->second->getClause()->getIdentifier()) == this->ActiveClauses->cend());
+			assert(this->InactiveClauses->find(iter->second->getClause()->getIdentifier()) == this->InactiveClauses->cend());
+		}
+	}
+
 	for(map <unsigned int, ClauseState *>::const_iterator iter = this->InactiveClauses->cbegin(); iter != this->InactiveClauses->cend(); iter++)
 	{
 		assert(iter->second->getClause()->Contains(this->variable));
 		assert(!satState->isActive(iter->second->getClause()));
+		assert(!iter->second->isActive());
 	}
 
 	for(map <unsigned int, ClauseState *>::const_iterator iter = this->ActiveClauses->cbegin(); iter != this->ActiveClauses->cend(); iter++)
 	{
 		assert(iter->second->getClause()->Contains(this->variable));
 		assert(satState->isActive(iter->second->getClause()));
+		assert(iter->second->isActive());
 		unsigned int currentClauseSize = iter->second->getCurrentSize();
 
 		if (iter->second->getClause()->Contains(this->variable, true)) {
@@ -233,6 +330,86 @@ void VariableState::checkState() const
 
 	delete negativeClauseSizes;
 	delete positiveClauseSizes;
+
+#ifdef SIBLING_CALCULATIONS
+	for (map <unsigned int, VariableState*>::const_iterator varIter = this->satState->variables->cbegin(); varIter != this->satState->variables->cend(); varIter++)
+	{
+		unsigned int positivePositveCount = 0;
+		unsigned int positiveNegativeCount = 0;
+		unsigned int negativePositveCount = 0;
+		unsigned int negativeNegativeCount = 0;
+
+		if (this->getVariable() != varIter->second->getVariable())
+		{
+			for (map <unsigned int, ClauseState*>::const_iterator clauseIter = this->ActiveClauses->cbegin(); clauseIter != this->ActiveClauses->cend(); clauseIter++)
+			{
+				assert(clauseIter->second->getClause()->Contains(this->getVariable()));
+				if (clauseIter->second->getClause()->Contains(this->getVariable(), true))
+				{
+					if (clauseIter->second->getClause()->Contains(varIter->second->getVariable(), true))
+					{
+						positivePositveCount++;
+					}
+					else if (clauseIter->second->getClause()->Contains(varIter->second->getVariable(), false))
+					{
+						positiveNegativeCount++;
+					}
+				}
+				else 
+				{
+					assert(clauseIter->second->getClause()->Contains(this->getVariable(), false));
+					if (clauseIter->second->getClause()->Contains(varIter->second->getVariable(), true))
+					{
+						negativePositveCount++;
+					}
+					else if (clauseIter->second->getClause()->Contains(varIter->second->getVariable(), false))
+					{
+						negativeNegativeCount++;
+					}
+				}
+			}
+		}
+
+		if (!varIter->second->isActive())
+		{
+			if (varIter->second->True)
+			{
+				assert(positivePositveCount == 0);
+				assert(negativePositveCount == 0);
+			}
+			else
+			{
+				assert(positiveNegativeCount == 0);
+				assert(negativeNegativeCount == 0);
+			}
+		}
+
+		if (this->positiveSiblingCount->find(varIter->second->getVariable()->GetVariable()) == this->positiveSiblingCount->cend())
+		{
+			assert(this->positiveSiblingCount->find(varIter->second->getVariable()->GetVariable()) == this->positiveSiblingCount->cend());
+			assert(this->positiveSiblingCount->find(-1 * varIter->second->getVariable()->GetVariable()) == this->positiveSiblingCount->cend());
+			assert(this->negativeSiblingCount->find(varIter->second->getVariable()->GetVariable()) == this->negativeSiblingCount->cend());
+			assert(this->negativeSiblingCount->find(-1 * varIter->second->getVariable()->GetVariable()) == this->negativeSiblingCount->cend());
+			assert(positivePositveCount == 0);
+			assert(positiveNegativeCount == 0);
+			assert(negativePositveCount == 0);
+			assert(negativeNegativeCount == 0);
+		}
+		else
+		{
+			assert(this->positiveSiblingCount->find(varIter->second->getVariable()->GetVariable()) != this->positiveSiblingCount->cend());
+			assert(this->positiveSiblingCount->find(-1 * varIter->second->getVariable()->GetVariable()) != this->positiveSiblingCount->cend());
+			assert(this->negativeSiblingCount->find(varIter->second->getVariable()->GetVariable()) != this->negativeSiblingCount->cend());
+			assert(this->negativeSiblingCount->find(-1 * varIter->second->getVariable()->GetVariable()) != this->negativeSiblingCount->cend());
+			assert(positivePositveCount == this->positiveSiblingCount->find(varIter->second->getVariable()->GetVariable())->second);
+			assert(positiveNegativeCount == this->positiveSiblingCount->find(-1 * varIter->second->getVariable()->GetVariable())->second);
+			assert(negativePositveCount == this->negativeSiblingCount->find(varIter->second->getVariable()->GetVariable())->second);
+			assert(negativeNegativeCount == this->negativeSiblingCount->find(-1 * varIter->second->getVariable()->GetVariable())->second);
+		}
+	}
+#endif
+
+	assert(this->probabiltyPositiveFirstStep == (this->NegativesSize == 0 ? 1.0 : ((double)this->PositivesSize) / ((double)(this->NegativesSize + this->PositivesSize))));
 }
 #endif
 
@@ -264,13 +441,38 @@ void VariableState::addClause(const ClauseState * clauseState, const unsigned in
 		this->PositivesSize++;
 		assert(clauseCount < this->PositiveClauseSizes->size());
 		(*(this->PositiveClauseSizes))[clauseCount]++;
+
+#ifdef SIBLING_CALCULATIONS
+		for (unsigned int i = 0; i < clause->_size; i++)
+		{
+			assert(clause->value[i] != 0);
+			if (*this->variable != clause->value[i])
+			{
+				this->positiveSiblingCount->find(clause->value[i])->second++;
+			}
+		}
+#endif
 	}
 	else
 	{
+		assert(clause->Contains(this->getVariable(), false));
 		this->NegativesSize++;
 		assert(clauseCount  < this->NegativeClauseSizes->size());
 		(*(this->NegativeClauseSizes))[clauseCount]++;
+
+#ifdef SIBLING_CALCULATIONS
+		for (unsigned int i = 0; i < clause->_size; i++)
+		{
+			assert(clause->value[i] != 0);
+			if (*this->variable != clause->value[i])
+			{
+				this->negativeSiblingCount->find(clause->value[i])->second++;
+			}
+		}
+#endif
 	}
+
+	this->probabiltyPositiveFirstStep = (this->NegativesSize == 0 ? 1.0 : ((double)this->PositivesSize) / ((double)(this->NegativesSize + this->PositivesSize)));
 }
 void VariableState::removeClause(const ClauseState * clauseState, const unsigned int clauseCount)
 {
@@ -292,15 +494,40 @@ void VariableState::removeClause(const ClauseState * clauseState, const unsigned
 		assert(clauseCount < this->PositiveClauseSizes->size());
 		assert((*(this->PositiveClauseSizes))[clauseCount] != 0);
 		(*(this->PositiveClauseSizes))[clauseCount]--;
+
+#ifdef SIBLING_CALCULATIONS
+		for (unsigned int i = 0; i < clause->_size; i++)
+		{
+			assert(clause->value[i] != 0);
+			if (*this->variable != clause->value[i])
+			{
+				this->positiveSiblingCount->find(clause->value[i])->second--;
+			}
+		}
+#endif
 	}
 	else
 	{
+		assert(clause->Contains(this->getVariable(), false));
 		assert(this->NegativesSize != 0);
 		this->NegativesSize--;
 		assert(clauseCount  < this->NegativeClauseSizes->size());
 		assert((*(this->NegativeClauseSizes))[clauseCount] != 0);
 		(*(this->NegativeClauseSizes))[clauseCount]--;
+
+#ifdef SIBLING_CALCULATIONS
+		for (unsigned int i = 0; i < clause->_size; i++)
+		{
+			assert(clause->value[i] != 0);
+			if (*this->variable != clause->value[i])
+			{
+				this->negativeSiblingCount->find(clause->value[i])->second--;
+			}
+		}
+#endif
 	}
+
+	this->probabiltyPositiveFirstStep = (this->NegativesSize == 0 ? 1.0 : ((double)this->PositivesSize) / ((double)(this->NegativesSize + this->PositivesSize)));
 }
 
 //-------------------------------
