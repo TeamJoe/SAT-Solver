@@ -20,12 +20,15 @@ private:
 
 	bool Active;
 	bool True;
+
+	double probabiltyPositiveFirstStep;
 protected:
 	ClauseState(SATState * sat, const Clause * clause);
 	ClauseState * copy(SATState * sat);
 
-	void update();
+	void init();
 	bool verifyTrue() const;
+	void update();
 public:
 	~ClauseState();
 

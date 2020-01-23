@@ -566,6 +566,12 @@ bool VariableState::hasSolution() const
 	return (getNegativeClauseCount(0) == 0 && getPositiveClauseCount(0) == 0 && (getNegativeClauseCount(1) == 0 || getPositiveClauseCount(1) == 0));
 }
 
+
+double VariableState::getProbabiltyPositiveFirstStep() const
+{
+	return this->probabiltyPositiveFirstStep;
+}
+
 //-------------------------------
 //
 // State Helper Functions

@@ -40,7 +40,7 @@ SATState::SATState(const SAT * sat)
 	// TODO: Speed up by having this get set by VariableState
 	for (map <unsigned int, ClauseState*>::const_iterator iter = this->clauses->begin(); iter != this->clauses->end(); iter++)
 	{
-		iter->second->update();
+		iter->second->init();
 	}
 
 	// TODO: Basic solving (resolving single size clauses, and variables without opposites
@@ -72,9 +72,11 @@ SATState::SATState(const SATState * oldState)
 		(*(this->variables))[newVariableState->getVariable()->getIdentifier()] = newVariableState;
 		assert(this->variables->find(newVariableState->getVariable()->getIdentifier()) != this->variables->cend());
 	}
+
+	// TODO: Speed up by having this get set by VariableState
 	for (map <unsigned int, ClauseState*>::const_iterator iter = this->clauses->begin(); iter != this->clauses->end(); iter++)
 	{
-		iter->second->update();
+		iter->second->init();
 	}
 }
 
@@ -211,6 +213,15 @@ void SATState::setVariable(const Variable* variable, const bool state)
 	this->variableAttempts++;
 	assert(!variableState->isActive());
 	assert(variableState->True == state);
+
+	//TODO on
+	map <unsigned int, ClauseState*>::const_iterator end = this->clauses->cend();
+	for (map <unsigned int, ClauseState*>::const_iterator iter = this->clauses->cbegin(); iter != end; iter++)
+	{
+		if (iter->second->isActive()) {
+			iter->second->update();
+		}
+	}
 }
 void SATState::unsetVariable(const Variable* variable)
 {
@@ -248,6 +259,14 @@ void SATState::unsetVariable(const Variable* variable)
 		}
 	}
 	assert(variableState->isActive());
+
+	map <unsigned int, ClauseState*>::const_iterator end = this->clauses->cend();
+	for (map <unsigned int, ClauseState*>::const_iterator iter = this->clauses->cbegin(); iter != end; iter++)
+	{
+		if (iter->second->isActive()) {
+			iter->second->update();
+		}
+	}
 }
 
 void SATState::deactivateClause(ClauseState* clause, unsigned int oldClauseCount)

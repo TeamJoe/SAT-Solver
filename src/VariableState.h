@@ -54,6 +54,9 @@ public:
 	int getValue() const;
 	bool hasSolution() const;
 
+	//Statistics Functions
+	double getProbabiltyPositiveFirstStep() const;
+
 	//State Helper Functions
 	unsigned int getNegativesSize() const;
 	unsigned int getPositivesSize() const;

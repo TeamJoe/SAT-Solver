@@ -16,21 +16,37 @@ ClauseState::ClauseState(SATState * sat, const Clause * clause)
 	this->True = false;
 
 	this->variables = new VariableState *[clause->_size];
+
+#if _DEBUG
 	for (unsigned int i = 0; i < this->clause->_size; i++)
 	{
 		this->variables[i] == NULL;
 	}
+#endif
 }
 ClauseState::~ClauseState()
 {
 	delete[] this->variables;
 }
-void ClauseState::update()
+void ClauseState::init()
 {
 	for (unsigned int i = 0; i < this->clause->_size; i++)
 	{
 		this->variables[i] = this->satState->_getState(this->clause->clause[i]->getVariable());
 	}
+}
+void ClauseState::update()
+{
+	assert(this->Active);
+	assert(!this->True);
+	double probabilityNegative = 1.0;
+	for (unsigned int i = 0; i < this->clause->_size; i++)
+	{
+		if (this->variables[i]->isActive()) {
+			probabilityNegative = probabilityNegative * (1.0 - this->variables[i]->getProbabiltyPositiveFirstStep());
+		}
+	}
+	probabiltyPositiveFirstStep = 1.0 - probabilityNegative;
 }
 ClauseState * ClauseState::copy(SATState * sat)
 {
