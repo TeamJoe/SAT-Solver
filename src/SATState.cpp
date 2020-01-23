@@ -37,6 +37,12 @@ SATState::SATState(const SAT * sat)
 		assert(this->variables->find(newVariableState->getVariable()->getIdentifier()) != this->variables->cend());
 	}
 
+	// TODO: Speed up by having this get set by VariableState
+	for (map <unsigned int, ClauseState*>::const_iterator iter = this->clauses->begin(); iter != this->clauses->end(); iter++)
+	{
+		iter->second->update();
+	}
+
 	// TODO: Basic solving (resolving single size clauses, and variables without opposites
 }
 
@@ -65,6 +71,10 @@ SATState::SATState(const SATState * oldState)
 		assert(this->variables->find(newVariableState->getVariable()->getIdentifier()) == this->variables->cend());
 		(*(this->variables))[newVariableState->getVariable()->getIdentifier()] = newVariableState;
 		assert(this->variables->find(newVariableState->getVariable()->getIdentifier()) != this->variables->cend());
+	}
+	for (map <unsigned int, ClauseState*>::const_iterator iter = this->clauses->begin(); iter != this->clauses->end(); iter++)
+	{
+		iter->second->update();
 	}
 }
 
@@ -143,56 +153,22 @@ void SATState::setVariable(const Variable * variable, const bool state)
 			iter++;
 			assert(clauseState->Active);
 			const Clause * clause = clauseState->getClause();
-			unsigned int clauseCount = clauseState->getCurrentSize();
-			assert(clauseCount < clause->Size());
 			if(clause->Contains(variable, state))
 			{
-				assert(this->_getState(clause)->Active);
-				assert(this->_getState(variable)->InactiveClauses->find(clause->getIdentifier()) == this->_getState(variable)->InactiveClauses->cend());
-				assert(this->_getState(variable)->ActiveClauses->find(clause->getIdentifier()) != this->_getState(variable)->ActiveClauses->cend());
-				clauseState->Active = false;
-				clauseState->True = true;
-				this->activeClauseCount--;
-				for(unsigned int i = 0; i < clause->_size; i++)
-				{
-					const Variable * var = clause->clause[i]->getVariable();
-					VariableState * varState = this->_getState(var);
-					assert(var == varState->getVariable());
-					varState->removeClause(clauseState, clauseCount + 1);
-				}
-				assert(!this->_getState(clause)->Active);
-				assert(this->_getState(variable)->InactiveClauses->find(clause->getIdentifier()) != this->_getState(variable)->InactiveClauses->cend());
-				assert(this->_getState(variable)->ActiveClauses->find(clause->getIdentifier()) == this->_getState(variable)->ActiveClauses->cend());
+				assert(clauseState->getCurrentSize() < clause->Size());
+				assert(variableState->InactiveClauses->find(clause->getIdentifier()) == variableState->InactiveClauses->cend());
+				assert(variableState->ActiveClauses->find(clause->getIdentifier()) != variableState->ActiveClauses->cend());
+				this->deactivateClause(clauseState);
+				assert(variableState->InactiveClauses->find(clause->getIdentifier()) != variableState->InactiveClauses->cend());
+				assert(variableState->ActiveClauses->find(clause->getIdentifier()) == variableState->ActiveClauses->cend());
 			}
 			else
 			{
-				assert(this->_getState(clause)->Active);
-				assert(this->_getState(variable)->InactiveClauses->find(clause->getIdentifier()) == this->_getState(variable)->InactiveClauses->cend());
-				assert(this->_getState(variable)->ActiveClauses->find(clause->getIdentifier()) != this->_getState(variable)->ActiveClauses->cend());
-				for(unsigned int i = 0; i < clause->_size; i++)
-				{
-					const Variable * var = clause->clause[i]->getVariable();
-					VariableState * varState = this->_getState(var);
-					assert(var == varState->getVariable());
-					assert(varState->ActiveClauses->find(clause->getIdentifier()) != varState->ActiveClauses->cend());
-					if (clause->Contains(var, true))
-					{
-						assert(clauseCount < varState->PositiveClauseSizes->size());
-						assert((*(varState->PositiveClauseSizes))[clauseCount + 1] != 0);
-						(*(varState->PositiveClauseSizes))[clauseCount]++;
-						(*(varState->PositiveClauseSizes))[clauseCount + 1]--;
-					}
-					else
-					{
-						assert(clauseCount < varState->NegativeClauseSizes->size());
-						assert((*(varState->NegativeClauseSizes))[clauseCount + 1] != 0);
-						(*(varState->NegativeClauseSizes))[clauseCount]++;
-						(*(varState->NegativeClauseSizes))[clauseCount + 1]--;
-					}
-				}
-				assert(this->_getState(clause)->Active);
-				assert(this->_getState(variable)->InactiveClauses->find(clause->getIdentifier()) == this->_getState(variable)->InactiveClauses->cend());
-				assert(this->_getState(variable)->ActiveClauses->find(clause->getIdentifier()) != this->_getState(variable)->ActiveClauses->cend());
+				assert(variableState->InactiveClauses->find(clause->getIdentifier()) == variableState->InactiveClauses->cend());
+				assert(variableState->ActiveClauses->find(clause->getIdentifier()) != variableState->ActiveClauses->cend());
+				this->updateClause(clauseState, clauseState->getCurrentSize() + 1);
+				assert(variableState->InactiveClauses->find(clause->getIdentifier()) == variableState->InactiveClauses->cend());
+				assert(variableState->ActiveClauses->find(clause->getIdentifier()) != variableState->ActiveClauses->cend());
 			}
 		}
 	} 
@@ -206,68 +182,28 @@ void SATState::setVariable(const Variable * variable, const bool state)
 		for(map <unsigned int, Clause *>::const_iterator iter = clauses->cbegin(); iter != end;)
 		{
 			const Clause * clause = iter->second;
+			ClauseState* clauseState = this->_getState(clause);
 			iter++;
 			assert(clause->Contains(variable));
 			if (clause->Contains(variable, state))
 			{
-				if (this->_getState(clause)->Active)
+				if (clauseState->Active)
 				{
-					assert(this->_getState(variable)->InactiveClauses->find(clause->getIdentifier()) == this->_getState(variable)->InactiveClauses->cend());
-					assert(this->_getState(variable)->ActiveClauses->find(clause->getIdentifier()) != this->_getState(variable)->ActiveClauses->cend());
-					ClauseState * clauseState = this->_getState(clause);
-					unsigned int clauseCount = clauseState->getCurrentSize();
-					assert(clauseCount < clause->Size());
-					clauseState->Active = false;
-					clauseState->True = true;
-					this->activeClauseCount--;
-					for(unsigned int i = 0; i < clause->_size; i++)
-					{
-						const Variable * var = clause->clause[i]->getVariable();
-						VariableState * varState = this->_getState(var);
-						assert(var == varState->getVariable());
-						varState->removeClause(clauseState, clauseCount);
-					}
+					assert(variableState->InactiveClauses->find(clause->getIdentifier()) == variableState->InactiveClauses->cend());
+					assert(variableState->ActiveClauses->find(clause->getIdentifier()) != variableState->ActiveClauses->cend());
+					this->deactivateClause(clauseState);
 				}
-				assert(!this->_getState(clause)->Active);
-				assert(this->_getState(variable)->InactiveClauses->find(clause->getIdentifier()) != this->_getState(variable)->InactiveClauses->cend());
-				assert(this->_getState(variable)->ActiveClauses->find(clause->getIdentifier()) == this->_getState(variable)->ActiveClauses->cend());
+				assert(!clauseState->Active);
+				assert(variableState->InactiveClauses->find(clause->getIdentifier()) != variableState->InactiveClauses->cend());
+				assert(variableState->ActiveClauses->find(clause->getIdentifier()) == variableState->ActiveClauses->cend());
 			}
 			else
 			{
-				assert(!this->_getState(clause)->Active);
-				assert(this->_getState(variable)->InactiveClauses->find(clause->getIdentifier()) != this->_getState(variable)->InactiveClauses->cend());
-				assert(this->_getState(variable)->ActiveClauses->find(clause->getIdentifier()) == this->_getState(variable)->ActiveClauses->cend());
-				bool isTrue = false;
-				for(unsigned int i = 0; i < clause->_size; i++)
-				{
-					const Literal * lit = clause->clause[i];
-					VariableState * varState = this->_getState(lit->getVariable());
-					if (!varState->isActive() && (varState->True == lit->GetType()))
-					{
-						isTrue = true;
-						break;
-					}
-				}
-				if (!isTrue)
-				{
-					ClauseState * clauseState = this->_getState(clause);
-					unsigned int clauseCount = clauseState->getCurrentSize();
-					assert(clauseCount < clause->Size());
-					clauseState->Active = true;
-					clauseState->True = false;
-					this->activeClauseCount++;
-					assert(clause == clauseState->clause);
-					for(unsigned int i = 0; i < clause->_size; i++)
-					{
-						const Variable * var = clause->clause[i]->getVariable();
-						VariableState * varState = this->_getState(var);
-						assert(var == varState->getVariable());
-						varState->addClause(clauseState, clauseCount);
-					}
-					assert(this->_getState(clause)->Active);
-					assert(this->_getState(variable)->InactiveClauses->find(clause->getIdentifier()) == this->_getState(variable)->InactiveClauses->cend());
-					assert(this->_getState(variable)->ActiveClauses->find(clause->getIdentifier()) != this->_getState(variable)->ActiveClauses->cend());
-				}
+				assert(variableState->InactiveClauses->find(clause->getIdentifier()) != variableState->InactiveClauses->cend());
+				assert(variableState->ActiveClauses->find(clause->getIdentifier()) == variableState->ActiveClauses->cend());
+				this->reactivateClause(clauseState);
+				assert(!clauseState->Active || variableState->InactiveClauses->find(clause->getIdentifier()) == variableState->InactiveClauses->cend());
+				assert(!clauseState->Active || variableState->ActiveClauses->find(clause->getIdentifier()) != variableState->ActiveClauses->cend());
 			}
 		}
 	}
@@ -278,6 +214,7 @@ void SATState::setVariable(const Variable * variable, const bool state)
 }
 void SATState::unsetVariable(const Variable * variable)
 {
+	assert(this->variables->find(variable->getIdentifier()) != this->variables->cend());
 	VariableState * variableState = this->_getState(variable);
 	if (!variableState->isActive())
 	{
@@ -289,84 +226,96 @@ void SATState::unsetVariable(const Variable * variable)
 		for(map <unsigned int, Clause *>::const_iterator iter = clauses->cbegin(); iter != end;)
 		{
 			const Clause * clause = iter->second;
+			ClauseState* clauseState = this->_getState(clause);
 			iter++;
 			assert(clause->Contains(variable));
 			if (clause->Contains(variable, variableState->True)) 
 			{
-				assert(!this->_getState(clause)->Active);
-				assert(this->_getState(variable)->InactiveClauses->find(clause->getIdentifier()) != this->_getState(variable)->InactiveClauses->cend());
-				assert(this->_getState(variable)->ActiveClauses->find(clause->getIdentifier()) == this->_getState(variable)->ActiveClauses->cend());
-				bool isTrue = false;
-				for(unsigned int i = 0; i < clause->_size; i++)
-				{
-					const Literal * lit = clause->clause[i];
-					VariableState * varState = this->_getState(lit->getVariable());
-					if (!varState->isActive() && (varState->True == lit->GetType()))
-					{
-						isTrue = true;
-						break;
-					}
-				}
-				if (!isTrue)
-				{
-					ClauseState * clauseState = this->_getState(clause);
-					unsigned int clauseCount = clauseState->getCurrentSize();
-					assert(clauseCount != 0);
-					clauseState->Active = true;
-					clauseState->True = false;
-					this->activeClauseCount++;
-					assert(clause == clauseState->clause);
-					for(unsigned int i = 0; i < clause->_size; i++)
-					{
-						const Variable * var = clause->clause[i]->getVariable();
-						VariableState * varState = this->_getState(var);
-						assert(var == varState->getVariable());
-						varState->addClause(clauseState, clauseCount);
-					}
-					assert(this->_getState(clause)->Active);
-					assert(this->_getState(variable)->InactiveClauses->find(clause->getIdentifier()) == this->_getState(variable)->InactiveClauses->cend());
-					assert(this->_getState(variable)->ActiveClauses->find(clause->getIdentifier()) != this->_getState(variable)->ActiveClauses->cend());
-				}
+				assert(variableState->InactiveClauses->find(clause->getIdentifier()) != variableState->InactiveClauses->cend());
+				assert(variableState->ActiveClauses->find(clause->getIdentifier()) == variableState->ActiveClauses->cend());
+				this->reactivateClause(clauseState);
+				assert(!clauseState->Active || variableState->InactiveClauses->find(clause->getIdentifier()) == variableState->InactiveClauses->cend());
+				assert(!clauseState->Active || variableState->ActiveClauses->find(clause->getIdentifier()) != variableState->ActiveClauses->cend());
 			}
-			else
+			else if (clauseState->Active)
 			{
-				ClauseState * clauseState = this->_getState(clause);
-				if (clauseState->Active)
-				{
-					unsigned int clauseCount = clauseState->getCurrentSize();
-					assert(clauseCount != 0);
-					assert(this->_getState(clause)->Active);
-					assert(this->_getState(variable)->InactiveClauses->find(clause->getIdentifier()) == this->_getState(variable)->InactiveClauses->cend());
-					assert(this->_getState(variable)->ActiveClauses->find(clause->getIdentifier()) != this->_getState(variable)->ActiveClauses->cend());
-					for(unsigned int i = 0; i < clause->_size; i++)
-					{
-						const Variable * var = clause->clause[i]->getVariable();
-						VariableState * varState = this->_getState(var);
-						assert(var == varState->getVariable());
-						assert(varState->ActiveClauses->find(clause->getIdentifier()) != varState->ActiveClauses->cend());
-						if (clause->Contains(var, true))
-						{
-							assert(clauseCount < varState->PositiveClauseSizes->size());
-							assert((*(varState->PositiveClauseSizes))[clauseCount - 1] != 0);
-							(*(varState->PositiveClauseSizes))[clauseCount]++;
-							(*(varState->PositiveClauseSizes))[clauseCount - 1]--;
-						}
-						else
-						{
-							assert(clauseCount < varState->NegativeClauseSizes->size());
-							assert((*(varState->NegativeClauseSizes))[clauseCount - 1] != 0);
-							(*(varState->NegativeClauseSizes))[clauseCount]++;
-							(*(varState->NegativeClauseSizes))[clauseCount - 1]--;
-						}
-					}
-					assert(this->_getState(clause)->Active);
-					assert(this->_getState(variable)->InactiveClauses->find(clause->getIdentifier()) == this->_getState(variable)->InactiveClauses->cend());
-					assert(this->_getState(variable)->ActiveClauses->find(clause->getIdentifier()) != this->_getState(variable)->ActiveClauses->cend());
-				}
+				assert(variableState->InactiveClauses->find(clause->getIdentifier()) == variableState->InactiveClauses->cend());
+				assert(variableState->ActiveClauses->find(clause->getIdentifier()) != variableState->ActiveClauses->cend());
+				this->updateClause(clauseState, clauseState->getCurrentSize() - 1);
+				assert(variableState->InactiveClauses->find(clause->getIdentifier()) == variableState->InactiveClauses->cend());
+				assert(variableState->ActiveClauses->find(clause->getIdentifier()) != variableState->ActiveClauses->cend());
 			}
 		}
 	}
 	assert(variableState->isActive());
+}
+
+void SATState::deactivateClause(ClauseState* clause)
+{
+	assert(clause->Active);
+	assert(clause == this->_getState(clause->clause));
+	unsigned int clauseCount = clause->getCurrentSize();
+	assert(clauseCount <= clause->clause->Size());
+	clause->Active = false;
+	clause->True = true;
+	this->activeClauseCount--;
+	for (unsigned int i = 0; i < clause->clause->_size; i++)
+	{
+		VariableState* varState = clause->variables[i];
+		assert(varState == this->_getState(varState->getVariable()));
+		varState->removeClause(clause, clauseCount);
+	}
+	assert(!clause->Active);
+}
+
+void SATState::updateClause(ClauseState* clause, unsigned int oldClauseCount)
+{
+	assert(clause->Active);
+	assert(clause == this->_getState(clause->clause));
+	unsigned int clauseCount = clause->getCurrentSize();
+	assert(clauseCount != 0);
+	assert(oldClauseCount != clauseCount);
+	for (unsigned int i = 0; i < clause->clause->_size; i++)
+	{
+		VariableState* varState = clause->variables[i];
+		assert(varState == this->_getState(varState->getVariable()));
+		assert(varState->ActiveClauses->find(clause->clause->getIdentifier()) != varState->ActiveClauses->cend());
+		if (clause->clause->Contains(varState->getVariable(), true))
+		{
+			assert(clauseCount < varState->PositiveClauseSizes->size());
+			assert((*(varState->PositiveClauseSizes))[oldClauseCount] != 0);
+			(*(varState->PositiveClauseSizes))[clauseCount]++;
+			(*(varState->PositiveClauseSizes))[oldClauseCount]--;
+		}
+		else
+		{
+			assert(clauseCount < varState->NegativeClauseSizes->size());
+			assert((*(varState->NegativeClauseSizes))[oldClauseCount] != 0);
+			(*(varState->NegativeClauseSizes))[clauseCount]++;
+			(*(varState->NegativeClauseSizes))[oldClauseCount]--;
+		}
+	}
+	assert(clause->Active);
+}
+
+void SATState::reactivateClause(ClauseState* clause)
+{
+	assert(!clause->Active);
+	assert(clause == this->_getState(clause->clause));
+	if (!clause->verifyTrue()) {
+		unsigned int clauseCount = clause->getCurrentSize();
+		assert(clauseCount <= clause->clause->_size);
+		clause->Active = true;
+		clause->True = false;
+		this->activeClauseCount++;
+		for (unsigned int i = 0; i < clause->clause->_size; i++)
+		{
+			VariableState* varState = clause->variables[i];
+			assert(varState == this->_getState(varState->getVariable()));
+			varState->addClause(clause, clauseCount);
+		}
+		assert(clause->Active);
+	}
 }
 
 const map <unsigned int, const VariableState *> * SATState::getVariableMap() const

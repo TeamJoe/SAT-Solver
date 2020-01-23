@@ -5,6 +5,7 @@ class ClauseState;
 
 #include "Clause.h"
 #include "SATState.h"
+#include "VariableState.h"
 
 #include "Constants.h"
 
@@ -15,6 +16,7 @@ class ClauseState
 private:
 	SATState * satState;
 	const Clause * clause;
+	VariableState** variables;
 
 	bool Active;
 	bool True;
@@ -22,7 +24,8 @@ protected:
 	ClauseState(SATState * sat, const Clause * clause);
 	ClauseState * copy(SATState * sat);
 
-	void reset();
+	void update();
+	bool verifyTrue() const;
 public:
 	~ClauseState();
 

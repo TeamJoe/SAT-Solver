@@ -448,6 +448,7 @@ void VariableState::addClause(const ClauseState * clauseState, const unsigned in
 			assert(clause->value[i] != 0);
 			if (*this->variable != clause->value[i])
 			{
+				assert(this->positiveSiblingCount->find(clause->value[i]) != this->positiveSiblingCount->cend());
 				this->positiveSiblingCount->find(clause->value[i])->second++;
 			}
 		}
@@ -466,6 +467,7 @@ void VariableState::addClause(const ClauseState * clauseState, const unsigned in
 			assert(clause->value[i] != 0);
 			if (*this->variable != clause->value[i])
 			{
+				assert(this->negativeSiblingCount->find(clause->value[i]) != this->negativeSiblingCount->cend());
 				this->negativeSiblingCount->find(clause->value[i])->second++;
 			}
 		}
@@ -501,6 +503,7 @@ void VariableState::removeClause(const ClauseState * clauseState, const unsigned
 			assert(clause->value[i] != 0);
 			if (*this->variable != clause->value[i])
 			{
+				assert(this->positiveSiblingCount->find(clause->value[i]) != this->positiveSiblingCount->cend());
 				this->positiveSiblingCount->find(clause->value[i])->second--;
 			}
 		}
@@ -521,6 +524,7 @@ void VariableState::removeClause(const ClauseState * clauseState, const unsigned
 			assert(clause->value[i] != 0);
 			if (*this->variable != clause->value[i])
 			{
+				assert(this->negativeSiblingCount->find(clause->value[i]) != this->negativeSiblingCount->cend());
 				this->negativeSiblingCount->find(clause->value[i])->second--;
 			}
 		}

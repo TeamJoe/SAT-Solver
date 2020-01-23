@@ -35,6 +35,10 @@ private:
 	unsigned int activeClauseCount;
 
 	unsigned int variableAttempts;
+
+	void deactivateClause(ClauseState* clause);
+	void updateClause(ClauseState* clause, unsigned int oldClauseCount);
+	void reactivateClause(ClauseState* clause);
 protected:
 	ClauseState * _getState(const Clause * clause);
 	VariableState * _getState(const Variable * variable);
@@ -65,6 +69,7 @@ public:
 	unsigned int getVariableAttempts() const;
 
 	friend VariableState;
+	friend ClauseState;
 };
 
 #endif

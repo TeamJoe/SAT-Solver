@@ -4,7 +4,7 @@
 #define DEPTH_SAT
 //#define BOTTOM_ANALYZE_SAT
 
-//#define SIBLING_CALCULATIONS
+#define SIBLING_CALCULATIONS
 
 #ifdef DEPTH_SAT
 	#define ANALYZER analyzeDepthSat
