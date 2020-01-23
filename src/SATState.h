@@ -36,9 +36,9 @@ private:
 
 	unsigned int variableAttempts;
 
-	void deactivateClause(ClauseState* clause);
-	void updateClause(ClauseState* clause, unsigned int oldClauseCount);
-	void reactivateClause(ClauseState* clause);
+	void deactivateClause(ClauseState* clause, unsigned int oldClauseCount);
+	void updateClause(ClauseState* clause, unsigned int oldClauseCount, unsigned int newClauseCount);
+	void reactivateClause(ClauseState* clause, unsigned int newClauseCount);
 protected:
 	ClauseState * _getState(const Clause * clause);
 	VariableState * _getState(const Variable * variable);
