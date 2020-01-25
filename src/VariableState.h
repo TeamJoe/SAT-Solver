@@ -29,11 +29,13 @@ private:
 	vector <unsigned int> * NegativeClauseSizes;
 	vector <unsigned int> * PositiveClauseSizes;
 
-	double probabiltyPositiveFirstStep;
-
 #ifdef SIBLING_CALCULATIONS
 	map <int, int>* positiveSiblingCount;
 	map <int, int>* negativeSiblingCount;
+#endif
+#ifdef STATISTICS_STEPS
+	double* score;
+	double* probabiltyPositive;
 #endif
 protected:
 	VariableState(SATState * sat, const Variable * v);
@@ -45,6 +47,10 @@ protected:
 #endif
 	void addClause(const ClauseState * clauseState, const unsigned int clauseCount);
 	void removeClause(const ClauseState * clauseState, const unsigned int clauseCount);
+
+#ifdef STATISTICS_STEPS
+	void updateStatistics(int step);
+#endif
 public:
 	~VariableState();
 
@@ -54,8 +60,11 @@ public:
 	int getValue() const;
 	bool hasSolution() const;
 
+#ifdef STATISTICS_STEPS
 	//Statistics Functions
-	double getProbabiltyPositiveFirstStep() const;
+	double getProbabiltyPositive(int step) const;
+	double getScore(int step) const;
+#endif
 
 	//State Helper Functions
 	unsigned int getNegativesSize() const;

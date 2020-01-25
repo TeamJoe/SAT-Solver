@@ -135,7 +135,12 @@ VariableState::VariableState(SATState * sat, const Variable * v)
 	assert(this->positiveSiblingCount->size() == this->negativeSiblingCount->size());
 #endif
 
-	this->probabiltyPositiveFirstStep = this->NegativesSize == 0 ? 1.0 : ((double)this->PositivesSize) / ((double)(this->NegativesSize + this->PositivesSize));
+#ifdef STATISTICS_STEPS
+	this->score = new double[STATISTICS_STEPS];
+	this->probabiltyPositive = new double[STATISTICS_STEPS];
+	this->score[0] = (double)(this->PositivesSize - this->NegativesSize);
+	this->probabiltyPositive[0] = this->NegativesSize == 0 ? 1.0 : ((double)this->PositivesSize) / ((double)(this->NegativesSize + this->PositivesSize));
+#endif
 }
 VariableState::VariableState(SATState * sat, VariableState * v)
 {
@@ -192,7 +197,14 @@ VariableState::VariableState(SATState * sat, VariableState * v)
 	assert(this->positiveSiblingCount->size() == this->negativeSiblingCount->size());
 #endif
 
-	this->probabiltyPositiveFirstStep = v->probabiltyPositiveFirstStep;
+#ifdef STATISTICS_STEPS
+	this->score = new double[STATISTICS_STEPS];
+	this->probabiltyPositive = new double[STATISTICS_STEPS];
+	for (unsigned int i = 0; i < STATISTICS_STEPS; i++) {
+		this->score[i] = v->score[i];
+		this->probabiltyPositive[i] = v->probabiltyPositive[i];
+	}
+#endif
 }
 VariableState::~VariableState()
 {
@@ -222,7 +234,47 @@ VariableState::~VariableState()
 		this->negativeSiblingCount = NULL;
 	}
 #endif
+
+#ifdef STATISTICS_STEPS
+	if (this->score != NULL) {
+		delete[] this->score;
+		this->score = NULL;
+	}
+	if (this->probabiltyPositive != NULL) {
+		delete[] this->probabiltyPositive;
+		this->probabiltyPositive = NULL;
+	}
+#endif
 }
+
+#ifdef STATISTICS_STEPS
+void VariableState::updateStatistics(int step)
+{
+	assert(step < STATISTICS_STEPS);
+	double scorePositive = 0.0;
+	double scoreNegative = 0.0;
+	map <unsigned int, ClauseState*>::const_iterator end = this->ActiveClauses->cend();
+	for (map <unsigned int, ClauseState*>::const_iterator iter = this->ActiveClauses->cbegin(); iter != end; iter++)
+	{
+		assert(this->satState->_getState(iter->second->getClause()) == iter->second);
+		assert(this->satState->_getState(iter->second->getClause())->getClause() == iter->second->getClause());
+		assert(this->ActiveClauses->find(this->satState->_getState(iter->second->getClause())->getClause()->getIdentifier()) != this->ActiveClauses->cend());
+		//assert(0.0 != iter->second->getProbabiltyPositive(step - 1));
+		if (iter->second->getClause()->Contains(this->getVariable(), true)) 
+		{
+			scorePositive += 1.0 / iter->second->getProbabiltyPositive(step-1);
+		}
+		else 
+		{
+			assert(iter->second->getClause()->Contains(this->getVariable(), false));
+			scoreNegative += 1.0 / (1.0 - iter->second->getProbabiltyPositive(step-1));
+		}
+	}
+
+	this->score[step] = scorePositive - scoreNegative;
+	this->probabiltyPositive[step] = scoreNegative == 0.0 ? 1.0 : scorePositive / (scorePositive + scoreNegative);
+}
+#endif
 
 #ifdef _DEBUG
 void VariableState::checkState() const
@@ -409,7 +461,10 @@ void VariableState::checkState() const
 	}
 #endif
 
-	assert(this->probabiltyPositiveFirstStep == (this->NegativesSize == 0 ? 1.0 : ((double)this->PositivesSize) / ((double)(this->NegativesSize + this->PositivesSize))));
+#ifdef STATISTICS_STEPS
+	assert(this->score[0] == (double)(this->PositivesSize - this->NegativesSize));
+	assert(this->probabiltyPositive[0] == (this->NegativesSize == 0 ? 1.0 : ((double)this->PositivesSize) / ((double)(this->NegativesSize + this->PositivesSize))));
+#endif
 }
 #endif
 
@@ -474,7 +529,10 @@ void VariableState::addClause(const ClauseState * clauseState, const unsigned in
 #endif
 	}
 
-	this->probabiltyPositiveFirstStep = (this->NegativesSize == 0 ? 1.0 : ((double)this->PositivesSize) / ((double)(this->NegativesSize + this->PositivesSize)));
+#ifdef STATISTICS_STEPS
+	this->score[0] = (double)(this->PositivesSize - this->NegativesSize);
+	this->probabiltyPositive[0] = (this->NegativesSize == 0 ? 1.0 : ((double)this->PositivesSize) / ((double)(this->NegativesSize + this->PositivesSize)));
+#endif
 }
 void VariableState::removeClause(const ClauseState * clauseState, const unsigned int clauseCount)
 {
@@ -531,7 +589,10 @@ void VariableState::removeClause(const ClauseState * clauseState, const unsigned
 #endif
 	}
 
-	this->probabiltyPositiveFirstStep = (this->NegativesSize == 0 ? 1.0 : ((double)this->PositivesSize) / ((double)(this->NegativesSize + this->PositivesSize)));
+#ifdef STATISTICS_STEPS
+	this->score[0] = (double)(this->PositivesSize - this->NegativesSize);
+	this->probabiltyPositive[0] = (this->NegativesSize == 0 ? 1.0 : ((double)this->PositivesSize) / ((double)(this->NegativesSize + this->PositivesSize)));
+#endif
 }
 
 //-------------------------------
@@ -566,11 +627,18 @@ bool VariableState::hasSolution() const
 	return (getNegativeClauseCount(0) == 0 && getPositiveClauseCount(0) == 0 && (getNegativeClauseCount(1) == 0 || getPositiveClauseCount(1) == 0));
 }
 
-
-double VariableState::getProbabiltyPositiveFirstStep() const
+#ifdef STATISTICS_STEPS
+double VariableState::getProbabiltyPositive(int step) const
 {
-	return this->probabiltyPositiveFirstStep;
+	assert(step < STATISTICS_STEPS);
+	return this->probabiltyPositive[step];
 }
+double VariableState::getScore(int step) const
+{
+	assert(step < STATISTICS_STEPS);
+	return this->score[step];
+}
+#endif
 
 //-------------------------------
 //

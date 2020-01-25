@@ -16,6 +16,9 @@ ClauseState::ClauseState(SATState * sat, const Clause * clause)
 	this->True = false;
 
 	this->variables = new VariableState *[clause->_size];
+#ifdef STATISTICS_STEPS
+	this->probabiltyPositive = new double[STATISTICS_STEPS - 1];
+#endif
 
 #if _DEBUG
 	for (unsigned int i = 0; i < this->clause->_size; i++)
@@ -26,7 +29,16 @@ ClauseState::ClauseState(SATState * sat, const Clause * clause)
 }
 ClauseState::~ClauseState()
 {
-	delete[] this->variables;
+	if (this->variables != NULL) {
+		delete this->variables;
+		this->variables = NULL;
+	}
+#ifdef STATISTICS_STEPS
+	if (this->probabiltyPositive != NULL) {
+		delete this->probabiltyPositive;
+		this->probabiltyPositive = NULL;
+	}
+#endif
 }
 void ClauseState::init()
 {
@@ -35,24 +47,34 @@ void ClauseState::init()
 		this->variables[i] = this->satState->_getState(this->clause->clause[i]->getVariable());
 	}
 }
-void ClauseState::update()
+#ifdef STATISTICS_STEPS
+void ClauseState::updateStatistics(int step)
 {
 	assert(this->Active);
 	assert(!this->True);
+	assert(step < STATISTICS_STEPS - 1);
 	double probabilityNegative = 1.0;
 	for (unsigned int i = 0; i < this->clause->_size; i++)
 	{
 		if (this->variables[i]->isActive()) {
-			probabilityNegative = probabilityNegative * (1.0 - this->variables[i]->getProbabiltyPositiveFirstStep());
+			probabilityNegative = probabilityNegative * (1.0 - this->variables[i]->getProbabiltyPositive(step));
 		}
 	}
-	probabiltyPositiveFirstStep = 1.0 - probabilityNegative;
+	probabiltyPositive[step] = 1.0 - probabilityNegative;
 }
+#endif
 ClauseState * ClauseState::copy(SATState * sat)
 {
 	ClauseState * newClause = new ClauseState(sat, this->clause);
 	newClause->Active = this->Active;
 	newClause->True = this->True;
+
+#ifdef STATISTICS_STEPS
+	for (unsigned int i = 0; i < STATISTICS_STEPS - 1; i++)
+	{
+		newClause->probabiltyPositive = this->probabiltyPositive;
+	}
+#endif
 
 	return newClause;
 }
@@ -128,3 +150,11 @@ bool ClauseState::verifyTrue() const
 
 	return false;
 }
+
+#ifdef STATISTICS_STEPS
+double ClauseState::getProbabiltyPositive(int step) const
+{
+	assert(step < STATISTICS_STEPS - 1);
+	return this->probabiltyPositive[step];
+}
+#endif

@@ -21,14 +21,16 @@ private:
 	bool Active;
 	bool True;
 
-	double probabiltyPositiveFirstStep;
+	double * probabiltyPositive;
 protected:
 	ClauseState(SATState * sat, const Clause * clause);
 	ClauseState * copy(SATState * sat);
 
 	void init();
 	bool verifyTrue() const;
-	void update();
+#ifdef STATISTICS_STEPS
+	void updateStatistics(int step);
+#endif
 public:
 	~ClauseState();
 
@@ -38,6 +40,10 @@ public:
 
 	const Clause * getClause() const;
 	const list<int> & getCurrentState() const;
+
+#ifdef STATISTICS_STEPS
+	double getProbabiltyPositive(int step) const;
+#endif
 
 	friend SATState;
 };

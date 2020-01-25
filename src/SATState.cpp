@@ -214,14 +214,25 @@ void SATState::setVariable(const Variable* variable, const bool state)
 	assert(!variableState->isActive());
 	assert(variableState->True == state);
 
-	//TODO on
-	map <unsigned int, ClauseState*>::const_iterator end = this->clauses->cend();
-	for (map <unsigned int, ClauseState*>::const_iterator iter = this->clauses->cbegin(); iter != end; iter++)
-	{
-		if (iter->second->isActive()) {
-			iter->second->update();
+#ifdef STATISTICS_STEPS
+	for (unsigned int stepCount = 1; stepCount < STATISTICS_STEPS; stepCount++) {
+		map <unsigned int, ClauseState*>::const_iterator cend = this->clauses->cend();
+		for (map <unsigned int, ClauseState*>::const_iterator iter = this->clauses->cbegin(); iter != cend; iter++)
+		{
+			if (iter->second->isActive()) {
+				iter->second->updateStatistics(stepCount - 1);
+			}
+		}
+
+		map <unsigned int, VariableState*>::const_iterator vend = this->variables->cend();
+		for (map <unsigned int, VariableState*>::const_iterator iter = this->variables->cbegin(); iter != vend; iter++)
+		{
+			if (iter->second->isActive()) {
+				iter->second->updateStatistics(stepCount);
+			}
 		}
 	}
+#endif
 }
 void SATState::unsetVariable(const Variable* variable)
 {
@@ -260,13 +271,25 @@ void SATState::unsetVariable(const Variable* variable)
 	}
 	assert(variableState->isActive());
 
-	map <unsigned int, ClauseState*>::const_iterator end = this->clauses->cend();
-	for (map <unsigned int, ClauseState*>::const_iterator iter = this->clauses->cbegin(); iter != end; iter++)
-	{
-		if (iter->second->isActive()) {
-			iter->second->update();
+#ifdef STATISTICS_STEPS
+	for (unsigned int stepCount = 1; stepCount < STATISTICS_STEPS; stepCount++) {
+		map <unsigned int, ClauseState*>::const_iterator cend = this->clauses->cend();
+		for (map <unsigned int, ClauseState*>::const_iterator iter = this->clauses->cbegin(); iter != cend; iter++)
+		{
+			if (iter->second->isActive()) {
+				iter->second->updateStatistics(stepCount - 1);
+			}
+		}
+
+		map <unsigned int, VariableState*>::const_iterator vend = this->variables->cend();
+		for (map <unsigned int, VariableState*>::const_iterator iter = this->variables->cbegin(); iter != vend; iter++)
+		{
+			if (iter->second->isActive()) {
+				iter->second->updateStatistics(stepCount);
+			}
 		}
 	}
+#endif
 }
 
 void SATState::deactivateClause(ClauseState* clause, unsigned int oldClauseCount)

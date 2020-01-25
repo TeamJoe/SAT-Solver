@@ -5,6 +5,7 @@
 //#define BOTTOM_ANALYZE_SAT
 
 #define SIBLING_CALCULATIONS
+#define STATISTICS_STEPS 5
 
 #ifdef DEPTH_SAT
 	#define ANALYZER analyzeDepthSat
