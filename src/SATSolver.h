@@ -27,6 +27,7 @@ using namespace std;
 
 struct ReturnValue
 {
+	const char* name;
 	list<const int *> * solutions;
 	SATSolverState * state;
 	SolvedStates solved;
@@ -47,7 +48,9 @@ private:
 	const SAT * sat;
 	ReturnValue ** returnValues;
 	unsigned int totalThreads;
+
 protected:
+	list<const char*>* getFastestMethods() const;
 	void _runSolverParallel(SolverFunction solverFunction, const unsigned int currentThread, void * variables);
 public:
 

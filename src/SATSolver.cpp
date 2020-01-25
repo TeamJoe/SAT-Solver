@@ -69,7 +69,6 @@ void cleanEachSolution(const ReturnValue * deleteValue)
 		}
 		delete deleteValue->solutions;
 	}
-
 	delete deleteValue;
 }
 
@@ -111,6 +110,31 @@ void SATSolver::cleanSolution()
 	this->totalThreads = 0;
 }
 
+list<const char*>* SATSolver::getFastestMethods() const
+{
+	list<const char*>* ret = new list<const char*>();
+	unsigned long long attempts = MAXLONGLONG;
+	for (unsigned int i = 0; i < this->totalThreads; i++)
+	{
+		if (this->returnValues[i]->solved == SolvedStates::COMPLETED_UNKNOWN
+			|| this->returnValues[i]->solved == SolvedStates::COMPLETED_NO_SOLUTION
+			|| this->returnValues[i]->solved == SolvedStates::COMPLETED_SOLUTION)
+		{
+			if (this->returnValues[i]->state->getState()->getVariableAttempts() < attempts)
+			{
+				attempts = this->returnValues[i]->state->getState()->getVariableAttempts();
+				ret->clear();
+				ret->push_back(this->returnValues[i]->name);
+			}
+			else if (attempts == this->returnValues[i]->state->getState()->getVariableAttempts())
+			{
+				ret->push_back(this->returnValues[i]->name);
+			}
+		}
+	}
+
+	return ret;
+}
 
 Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysisFunction)
 {
@@ -119,6 +143,16 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 	Solution * solution = new Solution;
 	solution->solved = SolvedStates::NOT_COMPLETED;
 	solution->solutions = NULL;
+
+	list<const char*>* fastestMethods = this->getFastestMethods();
+	file << "|";
+	for (list<const char*>::const_iterator iter = fastestMethods->cbegin(); iter != fastestMethods->cend(); iter++)
+	{
+		file << (*iter) << "|";
+	}
+	file << ",";
+	delete fastestMethods;
+
 	file << "|";
 	for(unsigned int i = 0; i < this->totalThreads; i++)
 	{
@@ -185,6 +219,10 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 		}
 
 		//Output other analysis to file
+		if (this->returnValues[i]->name != NULL)
+		{
+			file << this->returnValues[i]->name << ": ";
+		}
 		file << static_cast<int>(this->returnValues[i]->solved);
 		file << " (" << this->returnValues[i]->state->getState()->getVariableAttempts() << ")";
 		if (this->returnValues[i]->solutions == NULL)

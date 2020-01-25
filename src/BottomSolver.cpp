@@ -125,6 +125,7 @@ ReturnValue * solveBottomSat(const SATSolver * solver, void * variables)
 	}	
 
 	ReturnValue * value = new ReturnValue;
+	value->name = NULL;
 	value->solutions = NULL;
 	value->state = solverState;
 	value->solved = hasSolution ? SolvedStates::NOT_COMPLETED_SOLUTION : SolvedStates::NOT_COMPLETED_NO_SOLUTION;

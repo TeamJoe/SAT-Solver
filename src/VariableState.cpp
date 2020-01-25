@@ -259,7 +259,7 @@ void VariableState::updateStatistics(int step)
 		assert(this->satState->_getState(iter->second->getClause()) == iter->second);
 		assert(this->satState->_getState(iter->second->getClause())->getClause() == iter->second->getClause());
 		assert(this->ActiveClauses->find(this->satState->_getState(iter->second->getClause())->getClause()->getIdentifier()) != this->ActiveClauses->cend());
-		//assert(0.0 != iter->second->getProbabiltyPositive(step - 1));
+		assert(iter->second->getCurrentSize() == 0 || 0.0 != iter->second->getProbabiltyPositive(step - 1));
 		if (iter->second->getClause()->Contains(this->getVariable(), true)) 
 		{
 			scorePositive += 1.0 / iter->second->getProbabiltyPositive(step-1);

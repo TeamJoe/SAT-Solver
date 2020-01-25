@@ -21,7 +21,10 @@ const VariableState * HasNoSolution(const VariableState * v1, const VariableStat
 
 const VariableState* HasRequired(const VariableState* v1, const VariableState* v2)
 {
-	return v1->getSmallestClauseSize() == 1 ? v1 : v2;
+	return v1->getSmallestClauseSize() < 2
+		|| v1->getNegativesSize() < 1
+		|| v1->getPositivesSize() < 1
+		? v1 : v2;
 }
 
 const VariableState * LeastTotalUsed(const VariableState * v1, const VariableState * v2)
@@ -274,7 +277,9 @@ bool HasNoSolutionCompare(const VariableState * v1, const VariableState * v2)
 
 bool HasRequiredCompare(const VariableState* v1, const VariableState* v2)
 {
-	return v1->getSmallestClauseSize() != 1 && v2->getSmallestClauseSize() != 1;
+	return v1->getSmallestClauseSize() > 1 && v2->getSmallestClauseSize() > 1
+		&& v1->getNegativesSize() > 0 && v1->getPositivesSize() > 0
+		&& v2->getNegativesSize() > 0 && v2->getPositivesSize() > 0;
 }
 
 bool TotalUsed(const VariableState * v1, const VariableState * v2)
@@ -416,9 +421,9 @@ VariableSolutions StatisticSolver(const VariableState* v)
 	{
 		return VariableSolutions::MUST_NEGATIVE;
 	}
-	else if (v->getProbabiltyPositive(STATISTICS_STEPS - 1) != 0.5)
+	else if (v->getScore(STATISTICS_STEPS - 1) != 0.0)
 	{
-		return v->getProbabiltyPositive(STATISTICS_STEPS - 1) > 0.5
+		return v->getScore(STATISTICS_STEPS - 1) > 0.0
 			? VariableSolutions::VARIABLE_POSITIVE
 			: VariableSolutions::VARIABLE_NEGATIVE;
 	}
@@ -476,3 +481,67 @@ VariableSolutions FlipSatSolver(const VariableState * v)
 			: VariableSolutions::VARIABLE_NEGATIVE;
 	}
 }
+
+//******************************
+//------------------------------
+//
+// Sorting Function 
+//
+//------------------------------
+//******************************
+
+static SortFunction AllFunctions[] =
+{
+	{ LargeUsed, MostLargeUsed }, //0
+	{ LargeUsed, LeastLargeUsed }, //1
+	{ SmallUsed, MostSmallUsed }, //2
+	{ SmallUsed, LeastSmallUsed }, //3
+	{ Difference, MostDifference }, //4
+	{ Difference, LeastDifference }, //5
+	{ SmallestClauseSize, MostSmallestClauseSize }, //6
+	{ SmallestClauseSize, LeastSmallestClauseSize }, //7
+	{ SmallestClauseCount, MostSmallestClauseCount }, //8
+	{ SmallestClauseCount, LeastSmallestClauseCount }, //9
+	{ LargestClauseSize, MostLargestClauseSize }, //10
+	{ LargestClauseSize, LeastLargestClauseSize }, //11
+	{ LargestClauseCount, MostLargestClauseCount }, //12
+	{ LargestClauseCount, LeastLargestClauseCount }, //13
+	{ SmallestNegativeClauseSize, MostSmallestNegativeClauseSize }, //14
+	{ SmallestNegativeClauseSize, LeastSmallestNegativeClauseSize }, //15
+	{ SmallestNegativeClauseCount, MostSmallestNegativeClauseCount }, //16
+	{ SmallestNegativeClauseCount, LeastSmallestNegativeClauseCount }, //17
+	{ LargestNegativeClauseSize, MostLargestNegativeClauseSize }, //18
+	{ LargestNegativeClauseSize, LeastLargestNegativeClauseSize }, //19
+	{ LargestNegativeClauseCount, MostLargestNegativeClauseCount }, //20
+	{ LargestNegativeClauseCount, LeastLargestNegativeClauseCount }, //21
+	{ SmallestPositiveClauseSize, MostSmallestPositiveClauseSize }, //22
+	{ SmallestPositiveClauseSize, LeastSmallestPositiveClauseSize }, //23
+	{ SmallestPositiveClauseCount, MostSmallestPositiveClauseCount }, //24
+	{ SmallestPositiveClauseCount, LeastSmallestPositiveClauseCount }, //25
+	{ LargestPositiveClauseSize, MostLargestPositiveClauseSize }, //26
+	{ LargestPositiveClauseSize, LeastLargestPositiveClauseSize }, //27
+	{ LargestPositiveClauseCount, MostLargestPositiveClauseCount }, //28
+	{ LargestPositiveClauseCount, LeastLargestPositiveClauseCount }, //29
+	{ TotalUsed, MostTotalUsed }, //30
+	{ TotalUsed, LeastTotalUsed }, //31
+	{ AllClauseCounts, MostClauseCountSmallestToLargest }, //32
+	{ AllClauseCounts, MostClauseCountLargestToSmallest }, //33
+	{ AllClauseCounts, LeastClauseCountSmallestToLargest }, //34
+	{ AllClauseCounts, LeastClauseCountLargestToSmallest }, //35
+	{ HasNoSolutionCompare, HasNoSolution }, //36
+	{ HasRequiredCompare, HasRequired }, //37
+#ifdef STATISTICS_STEPS
+	{ AbsoluteScore, MostAbsoluteScore }, //38
+	{ AbsoluteScore, LeastAbsoluteScore } //39
+#endif
+};
+
+SortFunction* getSortFunction(Sorter sorter)
+{
+	if (sorter == Sorter::NoFunction) {
+		return NULL;
+	} else {
+		return &AllFunctions[(int)sorter];
+	}
+}
+
