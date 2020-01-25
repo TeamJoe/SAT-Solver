@@ -164,9 +164,9 @@ Clause* Clause::copy(SAT* _parent) const
 //
 //------------------------------
 //******************************
-unsigned int Clause::getIdentifier() const
+unsigned long Clause::getIdentifier() const
 {
-	return (unsigned int)(void *)this;
+	return (unsigned long)(void *)this;
 }
 unsigned int Clause::Size() const
 {

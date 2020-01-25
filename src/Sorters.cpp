@@ -14,13 +14,14 @@
 //
 //------------------------------
 //******************************
-const VariableState * HasSolution(const VariableState * v1, const VariableState * v2)
+const VariableState * HasNoSolution(const VariableState * v1, const VariableState * v2)
 {
-	if (v1->hasSolution()) {
-		return v2;
-	} else {
-		return v1;
-	}
+	return v1->hasSolution() ? v2 : v1;
+}
+
+const VariableState* HasRequired(const VariableState* v1, const VariableState* v2)
+{
+	return v1->getSmallestClauseSize() == 1 ? v1 : v2;
 }
 
 const VariableState * LeastTotalUsed(const VariableState * v1, const VariableState * v2)
@@ -187,6 +188,17 @@ const VariableState * LeastLargestPositiveClauseCount(const VariableState * v1, 
 	return v1->getLargestPositiveClauseCount() < v2->getLargestPositiveClauseCount() ? v1 : v2;
 }
 
+#ifdef  STATISTICS_STEPS
+const VariableState* MostAbsoluteScore(const VariableState* v1, const VariableState* v2)
+{
+	return v1->getAbsoluteScore(STATISTICS_STEPS - 1) > v2->getAbsoluteScore(STATISTICS_STEPS - 1) ? v1 : v2;
+}
+const VariableState* LeastAbsoluteScore(const VariableState* v1, const VariableState* v2)
+{
+	return v1->getAbsoluteScore(STATISTICS_STEPS - 1) < v2->getAbsoluteScore(STATISTICS_STEPS - 1) ? v1 : v2;
+}
+#endif
+
 //******************************
 //------------------------------
 //
@@ -255,9 +267,14 @@ const VariableState * LeastClauseCountLargestToSmallest(const VariableState * v1
 //
 //------------------------------
 //******************************
-bool HasSolutionCompare(const VariableState * v1, const VariableState * v2)
+bool HasNoSolutionCompare(const VariableState * v1, const VariableState * v2)
 {
 	return v1->hasSolution() && v2->hasSolution();
+}
+
+bool HasRequiredCompare(const VariableState* v1, const VariableState* v2)
+{
+	return v1->getSmallestClauseSize() != 1 && v2->getSmallestClauseSize() != 1;
 }
 
 bool TotalUsed(const VariableState * v1, const VariableState * v2)
@@ -340,6 +357,13 @@ bool LargestPositiveClauseCount(const VariableState * v1, const VariableState * 
 	return v1->getLargestPositiveClauseCount() == v2->getLargestPositiveClauseCount();
 }
 
+#ifdef STATISTICS_STEPS
+bool AbsoluteScore(const VariableState* v1, const VariableState* v2)
+{
+	return v1->getAbsoluteScore(STATISTICS_STEPS - 1) == v2->getAbsoluteScore(STATISTICS_STEPS - 1);
+}
+#endif
+
 //******************************
 //------------------------------
 //
@@ -369,6 +393,42 @@ bool AllClauseCounts(const VariableState * v1, const VariableState * v2)
 //
 //------------------------------
 //******************************
+#ifdef  STATISTICS_STEPS
+VariableSolutions StatisticSolver(const VariableState* v)
+{
+	if (!v->hasSolution())
+	{
+		return VariableSolutions::VARIABLE_NO_SOLUTION;
+	}
+	else if (v->getSmallestNegativeClauseSize() == 1)
+	{
+		return VariableSolutions::MUST_NEGATIVE;
+	}
+	else if (v->getSmallestPositiveClauseSize() == 1)
+	{
+		return VariableSolutions::MUST_POSITIVE;
+	}
+	else if (v->getNegativesSize() == 0)
+	{
+		return VariableSolutions::MUST_POSITIVE;
+	}
+	else if (v->getPositivesSize() == 0)
+	{
+		return VariableSolutions::MUST_NEGATIVE;
+	}
+	else if (v->getProbabiltyPositive(STATISTICS_STEPS - 1) != 0.5)
+	{
+		return v->getProbabiltyPositive(STATISTICS_STEPS - 1) > 0.5
+			? VariableSolutions::VARIABLE_POSITIVE
+			: VariableSolutions::VARIABLE_NEGATIVE;
+	}
+	else
+	{
+		return VariableSolutions::VARIABLE_UNKNOWN;
+	}
+}
+#endif
+
 VariableSolutions DefaultSolver(const VariableState * v)
 {
 	if (!v->hasSolution())
@@ -402,6 +462,7 @@ VariableSolutions DefaultSolver(const VariableState * v)
 		return VariableSolutions::VARIABLE_UNKNOWN;
 	}
 }
+
 VariableSolutions FlipSatSolver(const VariableState * v)
 {
 	if (v->getPositivesSize() == v->getNegativesSize())

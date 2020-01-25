@@ -72,37 +72,37 @@ const VariableState * NextVariable(const list <SortFunction *> * SortFunctions, 
 	return val;
 }
 
-int * getList(int v1, int v2) {
-	int * var = new int [3];
+Sorter * getList(Sorter v1, Sorter v2) {
+	Sorter * var = new Sorter [3];
 	var[0] = v1;
 	var[1] = v2;
-	var[2] = -1;
+	var[2] = Sorter::NoFunction;
 	return var;
 }
 
-int * getList(int v1, int v2, int v3) {
-	int * var = new int [4];
+Sorter * getList(Sorter v1, Sorter v2, Sorter v3) {
+	Sorter * var = new Sorter [4];
 	var[0] = v1;
 	var[1] = v2;
 	var[2] = v3;
-	var[3] = -1;
+	var[3] = Sorter::NoFunction;
 	return var;
 }
 
-int * getList(int v1, int v2, int v3, int v4, int v5, int v6) {
-	int * var = new int [7];
+Sorter * getList(Sorter v1, Sorter v2, Sorter v3, Sorter v4, Sorter v5, Sorter v6) {
+	Sorter * var = new Sorter [7];
 	var[0] = v1;
 	var[1] = v2;
 	var[2] = v3;
 	var[3] = v4;
 	var[4] = v5;
 	var[5] = v6;
-	var[6] = -1;
+	var[6] = Sorter::NoFunction;
 	return var;
 }
 
-int * getList(int v1, int v2, int v3, int v4, int v5, int v6, int v7) {
-	int * var = new int [8];
+Sorter * getList(Sorter v1, Sorter v2, Sorter v3, Sorter v4, Sorter v5, Sorter v6, Sorter v7) {
+	Sorter * var = new Sorter [8];
 	var[0] = v1;
 	var[1] = v2;
 	var[2] = v3;
@@ -110,12 +110,12 @@ int * getList(int v1, int v2, int v3, int v4, int v5, int v6, int v7) {
 	var[4] = v5;
 	var[5] = v6;
 	var[6] = v7;
-	var[7] = -1;
+	var[7] = Sorter::NoFunction;
 	return var;
 }
 
-int * getList(int v1, int v2, int v3, int v4, int v5, int v6, int v7, int v8) {
-	int * var = new int [9];
+Sorter * getList(Sorter v1, Sorter v2, Sorter v3, Sorter v4, Sorter v5, Sorter v6, Sorter v7, Sorter v8) {
+	Sorter * var = new Sorter [9];
 	var[0] = v1;
 	var[1] = v2;
 	var[2] = v3;
@@ -124,13 +124,28 @@ int * getList(int v1, int v2, int v3, int v4, int v5, int v6, int v7, int v8) {
 	var[5] = v6;
 	var[6] = v7;
 	var[7] = v8;
-	var[8] = -1;
+	var[8] = Sorter::NoFunction;
 	return var;
 }
 
-list<int *> * GetSortList()
+Sorter* getList(Sorter v1, Sorter v2, Sorter v3, Sorter v4, Sorter v5, Sorter v6, Sorter v7, Sorter v8, Sorter v9) {
+	Sorter* var = new Sorter[10];
+	var[0] = v1;
+	var[1] = v2;
+	var[2] = v3;
+	var[3] = v4;
+	var[4] = v5;
+	var[5] = v6;
+	var[6] = v7;
+	var[7] = v8;
+	var[8] = v9;
+	var[9] = Sorter::NoFunction;
+	return var;
+}
+
+list<Sorter*>* GetSortList()
 {
-	list<int *> * sortList = NULL;
+	list<Sorter*>* sortList = NULL;
 
 	//******************************
 	//------------------------------
@@ -140,9 +155,11 @@ list<int *> * GetSortList()
 	//------------------------------
 	//******************************
 #ifdef _DEBUG
-	sortList = new list<int *>();
-	//sortList->push_back(getList(36, 32, 4)); //HasSolution, MostClauseCountSmallestToLargest, MostDifference
-	sortList->push_back(getList(7, 8, 11, 12, 4, 0)); //LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount, MostDifference, MostLargeUsed
+	sortList = new list<Sorter*>();
+	/*
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::MostClauseCountSmallestToLargest, Sorter::MostDifference));
+	*/
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::MostLargeUsed));
 #else
 	//******************************
 	//------------------------------
@@ -152,15 +169,15 @@ list<int *> * GetSortList()
 	//------------------------------
 	//******************************
 #ifdef ORGINAL_SET
-	sortList = new list<int *>();
-	sortList->push_back(getList(4, 0)); //MostDifference, MostLargeUsed
-	sortList->push_back(getList(4, 1)); //MostDifference, LeastLargeUsed
-	sortList->push_back(getList(5, 0)); //LeastDifference, MostLargeUsed
-	sortList->push_back(getList(5, 1)); //LeastDifference, LeastLargeUsed
-	sortList->push_back(getList(0, 4)); //MostLargeUsed, MostDifference
-	sortList->push_back(getList(1, 4)); //LeastLargeUsed, MostDifference
-	sortList->push_back(getList(0, 5)); //MostLargeUsed, LeastDifference
-	sortList->push_back(getList(1, 5)); //LeastLargeUsed, LeastDifference
+	sortList = new list<Sorter*>();
+	sortList->push_back(getList(Sorter::MostDifference, Sorter::MostLargeUsed));
+	sortList->push_back(getList(Sorter::MostDifference, Sorter::LeastLargeUsed));
+	sortList->push_back(getList(Sorter::LeastDifference, Sorter::MostLargeUsed));
+	sortList->push_back(getList(Sorter::LeastDifference, Sorter::LeastLargeUsed));
+	sortList->push_back(getList(Sorter::MostLargeUsed, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::LeastLargeUsed, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::MostLargeUsed, Sorter::LeastDifference));
+	sortList->push_back(getList(Sorter::LeastLargeUsed, Sorter::LeastDifference));
 #endif
 	//******************************
 	//------------------------------
@@ -170,23 +187,23 @@ list<int *> * GetSortList()
 	//------------------------------
 	//******************************
 #ifdef SECONDARY_SET
-	sortList = new list<int *>();
-	sortList->push_back(getList(7, 8, 11, 12, 4, 0)); //LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount, MostDifference, MostLargeUsed
-	sortList->push_back(getList(7, 8, 11, 12, 4, 1)); //LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount, MostDifference, LeastLargeUsed
-	sortList->push_back(getList(7, 8, 11, 12, 5, 0)); //LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount, LeastDifference, MostLargeUsed
-	sortList->push_back(getList(7, 8, 11, 12, 5, 1)); //LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount, LeastDifference, LeastLargeUsed
-	sortList->push_back(getList(7, 8, 11, 12, 0, 4)); //LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount, MostLargeUsed, MostDifference
-	sortList->push_back(getList(7, 8, 11, 12, 1, 4)); //LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount, LeastLargeUsed, MostDifference
-	sortList->push_back(getList(7, 8, 11, 12, 0, 5)); //LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount, MostLargeUsed, LeastDifference
-	sortList->push_back(getList(7, 8, 11, 12, 1, 5)); //LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount, LeastLargeUsed, LeastDifference
-	sortList->push_back(getList(4, 0, 7, 8, 11, 12)); //MostDifference, MostLargeUsed, LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount
-	sortList->push_back(getList(4, 1, 7, 8, 11, 12)); //MostDifference, LeastLargeUsed, LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount
-	sortList->push_back(getList(5, 0, 7, 8, 11, 12)); //LeastDifference, MostLargeUsed, LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount
-	sortList->push_back(getList(5, 1, 7, 8, 11, 12)); //LeastDifference, LeastLargeUsed, LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount
-	sortList->push_back(getList(0, 4, 7, 8, 11, 12)); //MostLargeUsed, MostDifference, LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount
-	sortList->push_back(getList(1, 4, 7, 8, 11, 12)); //LeastLargeUsed, MostDifference, LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount
-	sortList->push_back(getList(0, 5, 7, 8, 11, 12)); //MostLargeUsed, LeastDifference, LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount
-	sortList->push_back(getList(1, 5, 7, 8, 11, 12)); //LeastLargeUsed, LeastDifference, LeastSmallestClauseSize, MostSmallestClauseCount, LeastLargestClauseSize, MostLargestClauseCount
+	sortList = new list<Sorter*>();
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::MostDifference, Sorter::MostLargeUsed));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::MostDifference, Sorter::LeastLargeUsed));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::LeastDifference, Sorter::MostLargeUsed));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::LeastDifference, Sorter::LeastLargeUsed));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::MostLargeUsed, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::LeastLargeUsed, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::MostLargeUsed, Sorter::LeastDifference));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::LeastLargeUsed, Sorter::LeastDifference));
+	sortList->push_back(getList(Sorter::MostDifference, Sorter::MostLargeUsed, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount));
+	sortList->push_back(getList(Sorter::MostDifference, Sorter::LeastLargeUsed, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount));
+	sortList->push_back(getList(Sorter::LeastDifference, Sorter::MostLargeUsed, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount));
+	sortList->push_back(getList(Sorter::LeastDifference, Sorter::LeastLargeUsed, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount));
+	sortList->push_back(getList(Sorter::MostLargeUsed, Sorter::MostDifference, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount));
+	sortList->push_back(getList(Sorter::LeastLargeUsed, Sorter::MostDifference, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount));
+	sortList->push_back(getList(Sorter::MostLargeUsed, Sorter::LeastDifference, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount));
+	sortList->push_back(getList(Sorter::LeastLargeUsed, Sorter::LeastDifference, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount));
 #endif
 	//******************************
 	//------------------------------
@@ -196,15 +213,15 @@ list<int *> * GetSortList()
 	//------------------------------
 	//******************************
 #ifdef THIRD_SET
-	sortList = new list<int *>();
-	sortList->push_back(getList(7, 8, 30, 11, 13, 4, 0)); //LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, MostDifference, MostLargeUsed
-	sortList->push_back(getList(7, 8, 30, 11, 13, 4, 1)); //LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, MostDifference, LeastLargeUsed
-	sortList->push_back(getList(7, 8, 30, 11, 13, 5, 0)); //LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, LeastDifference, MostLargeUsed
-	sortList->push_back(getList(7, 8, 30, 11, 13, 5, 1)); //LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, LeastDifference, LeastLargeUsed
-	sortList->push_back(getList(7, 8, 30, 11, 13, 0, 4)); //LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, MostLargeUsed, MostDifference
-	sortList->push_back(getList(7, 8, 30, 11, 13, 1, 4)); //LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, LeastLargeUsed, MostDifference
-	sortList->push_back(getList(7, 8, 30, 11, 13, 0, 5)); //LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, MostLargeUsed, LeastDifference
-	sortList->push_back(getList(7, 8, 30, 11, 13, 1, 5)); //LeastSmallestClauseSize, MostSmallestClauseCount,  LeastLargestClauseSize, LeastLargestClauseCount, MostTotalUsed, LeastLargeUsed, LeastDifference
+	sortList = new list<Sorter*>();
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::MostLargeUsed));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::LeastLargeUsed));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::MostLargeUsed));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::LeastLargeUsed));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastLargeUsed, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::LeastDifference));
+	sortList->push_back(getList(Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargeUsed, Sorter::LeastDifference));
 #endif
 	//******************************
 	//------------------------------
@@ -214,47 +231,65 @@ list<int *> * GetSortList()
 	//------------------------------
 	//******************************
 #ifdef FOURTH_SET
-	sortList = new list<int *>();
-	sortList->push_back(getList(36, 32, 4)); //HasSolution, MostClauseCountSmallestToLargest, MostDifference
-	sortList->push_back(getList(36, 32, 5)); //HasSolution, MostClauseCountSmallestToLargest, LeastDifference
-	sortList->push_back(getList(36, 33, 4)); //HasSolution, MostClauseCountLargestToSmallest, MostDifference
+	sortList = new list<Sorter*>();
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::MostClauseCountSmallestToLargest, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::MostClauseCountSmallestToLargest, Sorter::LeastDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::MostClauseCountLargestToSmallest, Sorter::MostDifference));
 	/*
-	sortList->push_back(getList(36, 33, 5)); //HasSolution, MostClauseCountLargestToSmallest, LeastDifference
-	sortList->push_back(getList(36, 34, 4)); //HasSolution, LeastClauseCountSmallestToLargest, MostDifference
-	sortList->push_back(getList(36, 34, 5)); //HasSolution, LeastClauseCountSmallestToLargest, LeastDifference
-	sortList->push_back(getList(36, 35, 4)); //HasSolution, LeastClauseCountLargestToSmallest, MostDifference
-	sortList->push_back(getList(36, 35, 5)); //HasSolution, LeastClauseCountLargestToSmallest, LeastDifference
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::MostClauseCountLargestToSmallest, Sorter::LeastDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastClauseCountSmallestToLargest, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastClauseCountSmallestToLargest, Sorter::LeastDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastClauseCountLargestToSmallest, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastClauseCountLargestToSmallest, Sorter::LeastDifference));
 	*/
-	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 4, 0)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, MostDifference, MostLargeUsed
-	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 4, 1)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, MostDifference, LeastLargeUsed
-	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 5, 0)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, LeastDifference, MostLargeUsed
-	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 5, 1)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, LeastDifference, LeastLargeUsed
-	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 0, 4)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, MostLargeUsed, MostDifference
-	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 1, 4)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, LeastLargeUsed, MostDifference
-	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 0, 5)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount, MostTotalUsed, LeastLargestClauseSize, LeastLargestClauseCount, MostLargeUsed, LeastDifference
-	sortList->push_back(getList(36, 7, 8, 30, 11, 13, 1, 5)); //HasSolution, LeastSmallestClauseSize, MostSmallestClauseCount,  LeastLargestClauseSize, LeastLargestClauseCount, MostTotalUsed, LeastLargeUsed, LeastDifference
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::MostLargeUsed));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::LeastLargeUsed));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::MostLargeUsed));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::LeastLargeUsed));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastLargeUsed, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::LeastDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargeUsed, Sorter::LeastDifference));
+
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::MostAbsoluteScore, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::MostLargeUsed));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::MostAbsoluteScore, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::LeastLargeUsed));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::MostAbsoluteScore, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::MostLargeUsed));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::MostAbsoluteScore, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::LeastLargeUsed));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::MostAbsoluteScore, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::MostAbsoluteScore, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastLargeUsed, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::MostAbsoluteScore, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::LeastDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::MostAbsoluteScore, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargeUsed, Sorter::LeastDifference));
+
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostAbsoluteScore, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::MostLargeUsed));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostAbsoluteScore, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::LeastLargeUsed));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostAbsoluteScore, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::MostLargeUsed));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostAbsoluteScore, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::LeastLargeUsed));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostAbsoluteScore, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostAbsoluteScore, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastLargeUsed, Sorter::MostDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostAbsoluteScore, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::LeastDifference));
+	sortList->push_back(getList(Sorter::HasNoSolution, Sorter::LeastSmallestClauseSize, Sorter::MostAbsoluteScore, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargeUsed, Sorter::LeastDifference));
 #endif
 
-	
+
 #endif
 	return sortList;
 }
 
 list <SortFunction *> * getSortFunctions(const unsigned int count)
 {
-	list<int *> * SortFunctions = GetSortList();
+	list<Sorter*> * SortFunctions = GetSortList();
 	list <SortFunction *> * ret = NULL;
 
 	unsigned int i = 0;
-	for (list <int *>::const_iterator iter = SortFunctions->cbegin(); iter != SortFunctions->cend(); iter++)
+	for (list <Sorter*>::const_iterator iter = SortFunctions->cbegin(); iter != SortFunctions->cend(); iter++)
 	{
 		if (i == count)
 		{
 			assert(ret == NULL);
 			list <SortFunction *> * SortList = new list <SortFunction *>();
-			for (unsigned int y = 0; (*iter)[y] != -1; y++)
+			for (unsigned int y = 0; (*iter)[y] != Sorter::NoFunction; y++)
 			{
-				SortList->push_back(&AllFunctions[(*iter)[y]]);
+				SortList->push_back(&AllFunctions[(int)(*iter)[y]]);
 			}
 			ret = SortList;
 		}
@@ -275,7 +310,12 @@ void * createDepthSatVariable(const SAT * sat, const unsigned int currentCount, 
 	DepthSatVariables * depthVariables = new DepthSatVariables;
 	depthVariables->SortFunctions = getSortFunctions(currentCount);
 	depthVariables->maxDepth = MAX_DEPTH_LIMIT;
+
+#ifdef STATISTICS_STEPS
+	depthVariables->Decider = &StatisticSolver;
+#else
 	depthVariables->Decider = &DefaultSolver;
+#endif
 
 	return depthVariables;
 }

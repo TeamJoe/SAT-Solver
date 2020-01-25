@@ -41,7 +41,7 @@ public:
 	~Variable();
 
 	//Operations
-	unsigned int getIdentifier() const;
+	unsigned long getIdentifier() const;
 	int GetVariable() const;
 	bool isValid() const;
 

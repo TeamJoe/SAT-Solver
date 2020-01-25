@@ -638,6 +638,11 @@ double VariableState::getScore(int step) const
 	assert(step < STATISTICS_STEPS);
 	return this->score[step];
 }
+double VariableState::getAbsoluteScore(int step) const
+{
+	assert(step < STATISTICS_STEPS);
+	return this->score[step] < 0.0 ? (-1.0 * this->score[step]) : this->score[step];
+}
 #endif
 
 //-------------------------------

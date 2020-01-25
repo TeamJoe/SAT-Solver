@@ -29,7 +29,5 @@ public:
 
 	void setVariable(const Variable * variable, const bool state);
 	void unsetVariable(const Variable * variable);
-
-	const list<const list <int> *> * getSolutions() const;
 };
 #endif

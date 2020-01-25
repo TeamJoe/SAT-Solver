@@ -333,9 +333,9 @@ bool SAT::addClause(const list <int>* clause)
 //
 //------------------------------
 //******************************
-unsigned int SAT::getIdentifier() const
+unsigned long SAT::getIdentifier() const
 {
-	return (unsigned int)(void *)this;
+	return (unsigned long)(void *)this;
 }
 bool SAT::Evaluate(const int * variables) const
 {

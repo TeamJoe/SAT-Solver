@@ -4,7 +4,8 @@
 
 using namespace std;
 
-const VariableState * HasSolution(const VariableState * v1, const VariableState * v2);
+const VariableState * HasNoSolution(const VariableState * v1, const VariableState * v2);
+const VariableState * HasRequired(const VariableState* v1, const VariableState* v2);
 const VariableState * LeastTotalUsed(const VariableState * v1, const VariableState * v2);
 const VariableState * MostTotalUsed(const VariableState * v1, const VariableState * v2);
 const VariableState * LeastDifference(const VariableState * v1, const VariableState * v2);
@@ -41,8 +42,11 @@ const VariableState * MostClauseCountSmallestToLargest(const VariableState * v1,
 const VariableState * MostClauseCountLargestToSmallest(const VariableState * v1, const VariableState * v2);
 const VariableState * LeastClauseCountSmallestToLargest(const VariableState * v1, const VariableState * v2);
 const VariableState * LeastClauseCountLargestToSmallest(const VariableState * v1, const VariableState * v2);
+const VariableState * MostAbsoluteScore(const VariableState* v1, const VariableState* v2);
+const VariableState * LeastAbsoluteScore(const VariableState* v1, const VariableState* v2);
 
-bool HasSolutionCompare(const VariableState * v1, const VariableState * v2);
+bool HasNoSolutionCompare(const VariableState * v1, const VariableState * v2);
+bool HasRequiredCompare(const VariableState* v1, const VariableState* v2);
 bool TotalUsed(const VariableState * v1, const VariableState * v2);
 bool LargeUsed(const VariableState * v1, const VariableState * v2);
 bool Difference(const VariableState * v1, const VariableState * v2);
@@ -60,9 +64,56 @@ bool SmallestPositiveClauseCount(const VariableState * v1, const VariableState *
 bool LargestPositiveClauseSize(const VariableState * v1, const VariableState * v2);
 bool LargestPositiveClauseCount(const VariableState * v1, const VariableState * v2);
 bool AllClauseCounts(const VariableState * v1, const VariableState * v2);
+bool AbsoluteScore(const VariableState* v1, const VariableState* v2);
 
+VariableSolutions StatisticSolver(const VariableState* v);
 VariableSolutions DefaultSolver(const VariableState * v);
 VariableSolutions FlipSatSolver(const VariableState * v);
+
+
+enum class Sorter {
+	NoFunction = -1,
+	MostLargeUsed = 0,
+	LeastLargeUsed = 1,
+	MostSmallUsed = 2,
+	LeastSmallUsed = 3,
+	MostDifference = 4,
+	LeastDifference = 5,
+	MostSmallestClauseSize = 6,
+	LeastSmallestClauseSize = 7,
+	MostSmallestClauseCount = 8,
+	LeastSmallestClauseCount = 9,
+	MostLargestClauseSize = 10,
+	LeastLargestClauseSize = 11,
+	MostLargestClauseCount = 12,
+	LeastLargestClauseCount = 13,
+	MostSmallestNegativeClauseSize = 14,
+	LeastSmallestNegativeClauseSize = 15,
+	MostSmallestNegativeClauseCount = 16,
+	LeastSmallestNegativeClauseCount = 17,
+	MostLargestNegativeClauseSize = 18,
+	LeastLargestNegativeClauseSize = 19,
+	MostLargestNegativeClauseCount = 20,
+	LeastLargestNegativeClauseCount = 21,
+	MostSmallestPositiveClauseSize = 22,
+	LeastSmallestPositiveClauseSize = 23,
+	MostSmallestPositiveClauseCount = 24,
+	LeastSmallestPositiveClauseCount = 25,
+	MostLargestPositiveClauseSize = 26,
+	LeastLargestPositiveClauseSize = 27,
+	MostLargestPositiveClauseCount = 28,
+	LeastLargestPositiveClauseCount = 29,
+	MostTotalUsed = 30,
+	LeastTotalUsed = 31,
+	MostClauseCountSmallestToLargest = 32,
+	MostClauseCountLargestToSmallest = 33,
+	LeastClauseCountSmallestToLargest = 34,
+	LeastClauseCountLargestToSmallest = 35,
+	HasNoSolution = 36,
+	HasRequired = 37,
+	MostAbsoluteScore = 38,
+	LeastAbsoluteScore = 39
+};
 
 //Naming Convention
 //Least - Smallest number (So LeastSmallest is not the largest of the smallest, it is the smallest of the smallest numbers)
@@ -105,5 +156,8 @@ static SortFunction AllFunctions[] =
 	{ AllClauseCounts, MostClauseCountLargestToSmallest }, //33
 	{ AllClauseCounts, LeastClauseCountSmallestToLargest }, //34
 	{ AllClauseCounts, LeastClauseCountLargestToSmallest }, //35
-	{ HasSolutionCompare, HasSolution } //36
+	{ HasNoSolutionCompare, HasNoSolution }, //36
+	{ HasRequiredCompare, HasRequired }, //37
+	{ AbsoluteScore, MostAbsoluteScore }, //38
+	{ AbsoluteScore, LeastAbsoluteScore } //39
 };

@@ -250,9 +250,9 @@ void Variable::removeSiblings(Literal* lit, map <int, map<unsigned int, Clause*>
 //
 //------------------------------
 //******************************
-unsigned int Variable::getIdentifier() const
+unsigned long Variable::getIdentifier() const
 {
-	return (unsigned int)(void *)this;
+	return (unsigned long)(void *)this;
 }
 int Variable::GetVariable() const
 {

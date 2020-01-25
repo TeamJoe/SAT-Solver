@@ -64,6 +64,7 @@ public:
 	//Statistics Functions
 	double getProbabiltyPositive(int step) const;
 	double getScore(int step) const;
+	double getAbsoluteScore(int step) const;
 #endif
 
 	//State Helper Functions

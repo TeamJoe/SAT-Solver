@@ -111,9 +111,9 @@ bool Literal::Opposite(const int& lit) const
 //
 //------------------------------
 //******************************
-unsigned int Literal::getIdentifier() const
+unsigned long Literal::getIdentifier() const
 {
-	return (unsigned int)(void *)this;
+	return (unsigned long)(void *)this;
 }
 int Literal::getValue() const
 {

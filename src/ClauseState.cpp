@@ -23,7 +23,7 @@ ClauseState::ClauseState(SATState * sat, const Clause * clause)
 #if _DEBUG
 	for (unsigned int i = 0; i < this->clause->_size; i++)
 	{
-		this->variables[i] == NULL;
+		this->variables[i] = NULL;
 	}
 #endif
 }

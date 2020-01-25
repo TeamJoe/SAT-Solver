@@ -48,7 +48,7 @@ public:
 	bool addClause(const list <int> * variables);
 
 	//Checker Functions
-	unsigned int getIdentifier() const;
+	unsigned long getIdentifier() const;
 	bool Evaluate(const int * variables) const;
 	bool Evaluate(const list <int> * variables) const;
 

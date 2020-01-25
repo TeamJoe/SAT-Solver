@@ -37,7 +37,7 @@ public:
 	~Clause();
 
 	//Operations
-	unsigned int getIdentifier() const;
+	unsigned long getIdentifier() const;
 	unsigned int Size() const;
 	bool Contains(const Variable * variable) const;
 	bool Contains(const Variable * variable, const bool isPositive) const;

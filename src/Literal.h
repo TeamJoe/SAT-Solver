@@ -40,7 +40,7 @@ public:
 	bool Opposite(const int& lit) const;
 
 	//Operators
-	unsigned int getIdentifier() const;
+	unsigned long getIdentifier() const;
 	int getValue() const;
 	bool GetType() const;
 	const Clause * getClause() const;
