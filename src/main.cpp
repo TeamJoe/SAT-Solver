@@ -8,6 +8,36 @@
 
 using namespace std;
 
+/*
+Ideas:
+
+--Statistics Sorter--
+* Can I improve the statistical function?
+** Is the score scaling correctly?
+* Scoring seems good at finding single solutions, but terrible at evaulating an entire tree
+
+--Connection Sorter--
+* Evalute the most connected variable (Highest sibling count)
+* Go to sibling of last variable with most connections?
+* Go to sibling of last variable with most connections to last variable?
+
+--Split Graph--
+* Split graph when graph has disconnections
+** This can be done using the SIBLING_CALCULATIONS, and then check if there are variables without specific siblings and their siblings as don't have those siblings.
+* Could look for maximum splits
+** Function to check for varialbes with most siblings
+** Function to check for variable with most `unique` (in-laws) siblings. Siblings your siblings don't also have
+
+--Caching--
+* What is the same cached value?
+** Same clause remaining and same variables remaining
+** Same clause remaining and a subset of variables remaining
+** Superset clause remaining and same variables remaining
+** Superset clause remaining and subset of variables remaining
+* Is there a way to cache structure without caching values?
+
+*/
+
 int main(int argc, char * argv[])
 {
 	ofstream out;

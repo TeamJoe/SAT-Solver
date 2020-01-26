@@ -12,8 +12,8 @@
 	#define VARIABLE_CREATOR createDepthSatVariable
 	#define SOLVER solveDepthSat
 	#define PARALLEL
-	#define COMPLETE
-	#define END_ON_FIRST_SOLUTION
+	#define LET_ALL_SOLVERS_FINISH
+	#define FIND_ALL_SOLUTIONS
 	#ifdef _DEBUG
 		//#define OUTPUT_INTERMEDIATE_SOLUTION
 		#define MAX_DEPTH_LIMIT 300
@@ -24,7 +24,7 @@
 		//#define SECONDARY_SET 16
 		//#define THIRD_SET 8
 		#define FOURTH_SET 16
-		#define SET_SIZE 22
+		#define SET_SIZE 23
 	#endif
 #else 
 	#define MAX_DEPTH_LIMIT 0

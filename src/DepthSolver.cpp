@@ -445,7 +445,7 @@ ReturnValue * solveDepthSat(const SATSolver * solver, void * variables)
 	value->variables = NULL;
 
 
-#ifndef COMPLETE
+#ifndef LET_ALL_SOLVERS_FINISH
 	value->terminateRemaingThreads = true;
 #else
 	value->terminateRemaingThreads = false;
@@ -561,7 +561,7 @@ SolverState _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSol
 		|| (solution == VariableSolutions::VARIABLE_NO_SOLUTION && var1->getValue() != 0));
 
 	SolverState i = _solveDepthSat(value, solver, solverState, SortFunctions, Decider, maxDepth);
-#ifdef END_ON_FIRST_SOLUTION
+#ifndef FIND_ALL_SOLUTIONS
 	if (i != SolverState::NO_SOLUTION_FOUND) {
 #else
 	if (i != SolverState::NO_SOLUTION_FOUND && i != SolverState::SOLUTION_FOUND) {
@@ -610,7 +610,7 @@ SolverState _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSol
 			|| (solution == VariableSolutions::VARIABLE_NO_SOLUTION && var1->getValue() != 0));
 
 		SolverState i = _solveDepthSat(value, solver, solverState, SortFunctions, Decider, maxDepth);
-#ifdef END_ON_FIRST_SOLUTION
+#ifndef FIND_ALL_SOLUTIONS
 		if (i != SolverState::NO_SOLUTION_FOUND) {
 #else
 		if (i != SolverState::NO_SOLUTION_FOUND && i != SolverState::SOLUTION_FOUND) {
