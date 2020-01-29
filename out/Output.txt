@@ -1,6 +1,2 @@
 uf20
 uf50
-uuf50
-uf75
-uuf75
-uf100

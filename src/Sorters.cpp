@@ -3,6 +3,9 @@
 #include "VariableState.h"
 #include "Constants.h"
 
+//For checking that all output is correct
+#include <assert.h>
+
 //Memory leak detection
 #include "Debug.h"
 
@@ -490,58 +493,100 @@ VariableSolutions FlipSatSolver(const VariableState * v)
 //------------------------------
 //******************************
 
-static SortFunction AllFunctions[] =
-{
-	{ LargeUsed, MostLargeUsed }, //0
-	{ LargeUsed, LeastLargeUsed }, //1
-	{ SmallUsed, MostSmallUsed }, //2
-	{ SmallUsed, LeastSmallUsed }, //3
-	{ Difference, MostDifference }, //4
-	{ Difference, LeastDifference }, //5
-	{ SmallestClauseSize, MostSmallestClauseSize }, //6
-	{ SmallestClauseSize, LeastSmallestClauseSize }, //7
-	{ SmallestClauseCount, MostSmallestClauseCount }, //8
-	{ SmallestClauseCount, LeastSmallestClauseCount }, //9
-	{ LargestClauseSize, MostLargestClauseSize }, //10
-	{ LargestClauseSize, LeastLargestClauseSize }, //11
-	{ LargestClauseCount, MostLargestClauseCount }, //12
-	{ LargestClauseCount, LeastLargestClauseCount }, //13
-	{ SmallestNegativeClauseSize, MostSmallestNegativeClauseSize }, //14
-	{ SmallestNegativeClauseSize, LeastSmallestNegativeClauseSize }, //15
-	{ SmallestNegativeClauseCount, MostSmallestNegativeClauseCount }, //16
-	{ SmallestNegativeClauseCount, LeastSmallestNegativeClauseCount }, //17
-	{ LargestNegativeClauseSize, MostLargestNegativeClauseSize }, //18
-	{ LargestNegativeClauseSize, LeastLargestNegativeClauseSize }, //19
-	{ LargestNegativeClauseCount, MostLargestNegativeClauseCount }, //20
-	{ LargestNegativeClauseCount, LeastLargestNegativeClauseCount }, //21
-	{ SmallestPositiveClauseSize, MostSmallestPositiveClauseSize }, //22
-	{ SmallestPositiveClauseSize, LeastSmallestPositiveClauseSize }, //23
-	{ SmallestPositiveClauseCount, MostSmallestPositiveClauseCount }, //24
-	{ SmallestPositiveClauseCount, LeastSmallestPositiveClauseCount }, //25
-	{ LargestPositiveClauseSize, MostLargestPositiveClauseSize }, //26
-	{ LargestPositiveClauseSize, LeastLargestPositiveClauseSize }, //27
-	{ LargestPositiveClauseCount, MostLargestPositiveClauseCount }, //28
-	{ LargestPositiveClauseCount, LeastLargestPositiveClauseCount }, //29
-	{ TotalUsed, MostTotalUsed }, //30
-	{ TotalUsed, LeastTotalUsed }, //31
-	{ AllClauseCounts, MostClauseCountSmallestToLargest }, //32
-	{ AllClauseCounts, MostClauseCountLargestToSmallest }, //33
-	{ AllClauseCounts, LeastClauseCountSmallestToLargest }, //34
-	{ AllClauseCounts, LeastClauseCountLargestToSmallest }, //35
-	{ HasNoSolutionCompare, HasNoSolution }, //36
-	{ HasRequiredCompare, HasRequired }, //37
+static SortFunction MostLargeUsed_Functions =						{ LargeUsed, MostLargeUsed };
+static SortFunction LeastLargeUsed_Functions =						{ LargeUsed, LeastLargeUsed };
+static SortFunction MostSmallUsed_Functions =						{ SmallUsed, MostSmallUsed };
+static SortFunction LeastSmallUsed_Functions =						{ SmallUsed, LeastSmallUsed };
+static SortFunction MostDifference_Functions =						{ Difference, MostDifference };
+static SortFunction LeastDifference_Functions =						{ Difference, LeastDifference };
+static SortFunction MostSmallestClauseSize_Functions =				{ SmallestClauseSize, MostSmallestClauseSize };
+static SortFunction LeastSmallestClauseSize_Functions =				{ SmallestClauseSize, LeastSmallestClauseSize };
+static SortFunction MostSmallestClauseCount_Functions =				{ SmallestClauseCount, MostSmallestClauseCount };
+static SortFunction LeastSmallestClauseCount_Functions =			{ SmallestClauseCount, LeastSmallestClauseCount };
+static SortFunction MostLargestClauseSize_Functions =				{ LargestClauseSize, MostLargestClauseSize };
+static SortFunction LeastLargestClauseSize_Functions =				{ LargestClauseSize, LeastLargestClauseSize };
+static SortFunction MostLargestClauseCount_Functions =				{ LargestClauseCount, MostLargestClauseCount };
+static SortFunction LeastLargestClauseCount_Functions =				{ LargestClauseCount, LeastLargestClauseCount };
+static SortFunction MostSmallestNegativeClauseSize_Functions =		{ SmallestNegativeClauseSize, MostSmallestNegativeClauseSize };
+static SortFunction LeastSmallestNegativeClauseSize_Functions =		{ SmallestNegativeClauseSize, LeastSmallestNegativeClauseSize };
+static SortFunction MostSmallestNegativeClauseCount_Functions =		{ SmallestNegativeClauseCount, MostSmallestNegativeClauseCount };
+static SortFunction LeastSmallestNegativeClauseCount_Functions =	{ SmallestNegativeClauseCount, LeastSmallestNegativeClauseCount };
+static SortFunction MostLargestNegativeClauseSize_Functions =		{ LargestNegativeClauseSize, MostLargestNegativeClauseSize };
+static SortFunction LeastLargestNegativeClauseSize_Functions =		{ LargestNegativeClauseSize, LeastLargestNegativeClauseSize };
+static SortFunction MostLargestNegativeClauseCount_Functions =		{ LargestNegativeClauseCount, MostLargestNegativeClauseCount };
+static SortFunction LeastLargestNegativeClauseCount_Functions =		{ LargestNegativeClauseCount, LeastLargestNegativeClauseCount };
+static SortFunction MostSmallestPositiveClauseSize_Functions =		{ SmallestPositiveClauseSize, MostSmallestPositiveClauseSize };
+static SortFunction LeastSmallestPositiveClauseSize_Functions =		{ SmallestPositiveClauseSize, LeastSmallestPositiveClauseSize };
+static SortFunction MostSmallestPositiveClauseCount_Functions =		{ SmallestPositiveClauseCount, MostSmallestPositiveClauseCount };
+static SortFunction LeastSmallestPositiveClauseCount_Functions =	{ SmallestPositiveClauseCount, LeastSmallestPositiveClauseCount };
+static SortFunction MostLargestPositiveClauseSize_Functions =		{ LargestPositiveClauseSize, MostLargestPositiveClauseSize };
+static SortFunction LeastLargestPositiveClauseSize_Functions =		{ LargestPositiveClauseSize, LeastLargestPositiveClauseSize };
+static SortFunction MostLargestPositiveClauseCount_Functions =		{ LargestPositiveClauseCount, MostLargestPositiveClauseCount };
+static SortFunction LeastLargestPositiveClauseCount_Functions =		{ LargestPositiveClauseCount, LeastLargestPositiveClauseCount };
+static SortFunction MostTotalUsed_Functions =						{ TotalUsed, MostTotalUsed };
+static SortFunction LeastTotalUsed_Functions =						{ TotalUsed, LeastTotalUsed };
+static SortFunction MostClauseCountSmallestToLargest_Functions =	{ AllClauseCounts, MostClauseCountSmallestToLargest };
+static SortFunction MostClauseCountLargestToSmallest_Functions =	{ AllClauseCounts, MostClauseCountLargestToSmallest };
+static SortFunction LeastClauseCountSmallestToLargest_Functions =	{ AllClauseCounts, LeastClauseCountSmallestToLargest };
+static SortFunction LeastClauseCountLargestToSmallest_Functions =	{ AllClauseCounts, LeastClauseCountLargestToSmallest };
+static SortFunction HasNoSolution_Functions =						{ HasNoSolutionCompare, HasNoSolution };
+static SortFunction HasRequired_Functions =							{ HasRequiredCompare, HasRequired };
+
 #ifdef STATISTICS_STEPS
-	{ AbsoluteScore, MostAbsoluteScore }, //38
-	{ AbsoluteScore, LeastAbsoluteScore } //39
+static SortFunction MostAbsoluteScore_Functions =					{ AbsoluteScore, MostAbsoluteScore };
+static SortFunction LeastAbsoluteScore_Functions =					{ AbsoluteScore, LeastAbsoluteScore };
 #endif
-};
 
 SortFunction* getSortFunction(Sorter sorter)
 {
-	if (sorter == Sorter::NoFunction) {
-		return NULL;
-	} else {
-		return &AllFunctions[(int)sorter];
+	switch (sorter) {
+		case Sorter::NoFunction:						return NULL;
+		case Sorter::MostLargeUsed:						return &MostLargeUsed_Functions;
+		case Sorter::LeastLargeUsed:					return &LeastLargeUsed_Functions;
+		case Sorter::MostSmallUsed:						return &MostSmallUsed_Functions;
+		case Sorter::LeastSmallUsed:					return &LeastSmallUsed_Functions;
+		case Sorter::MostDifference:					return &MostDifference_Functions;
+		case Sorter::LeastDifference:					return &LeastDifference_Functions;
+		case Sorter::MostSmallestClauseSize:			return &MostSmallestClauseSize_Functions;
+		case Sorter::LeastSmallestClauseSize:			return &LeastSmallestClauseSize_Functions;
+		case Sorter::MostSmallestClauseCount:			return &MostSmallestClauseCount_Functions;
+		case Sorter::LeastSmallestClauseCount:			return &LeastSmallestClauseCount_Functions;
+		case Sorter::MostLargestClauseSize:				return &MostLargestClauseSize_Functions;
+		case Sorter::LeastLargestClauseSize:			return &LeastLargestClauseSize_Functions;
+		case Sorter::MostLargestClauseCount:			return &MostLargestClauseCount_Functions;
+		case Sorter::LeastLargestClauseCount:			return &LeastLargestClauseCount_Functions;
+		case Sorter::MostSmallestNegativeClauseSize:	return &MostSmallestNegativeClauseSize_Functions;
+		case Sorter::LeastSmallestNegativeClauseSize:	return &LeastSmallestNegativeClauseSize_Functions;
+		case Sorter::MostSmallestNegativeClauseCount:	return &MostSmallestNegativeClauseCount_Functions;
+		case Sorter::LeastSmallestNegativeClauseCount:	return &LeastSmallestNegativeClauseCount_Functions;
+		case Sorter::MostLargestNegativeClauseSize:		return &MostLargestNegativeClauseSize_Functions;
+		case Sorter::LeastLargestNegativeClauseSize:	return &LeastLargestNegativeClauseSize_Functions;
+		case Sorter::MostLargestNegativeClauseCount:	return &MostLargestNegativeClauseCount_Functions;
+		case Sorter::LeastLargestNegativeClauseCount:	return &LeastLargestNegativeClauseCount_Functions;
+		case Sorter::MostSmallestPositiveClauseSize:	return &MostSmallestPositiveClauseSize_Functions;
+		case Sorter::LeastSmallestPositiveClauseSize:	return &LeastSmallestPositiveClauseSize_Functions;
+		case Sorter::MostSmallestPositiveClauseCount:	return &MostSmallestPositiveClauseCount_Functions;
+		case Sorter::LeastSmallestPositiveClauseCount:	return &LeastSmallestPositiveClauseCount_Functions;
+		case Sorter::MostLargestPositiveClauseSize:		return &MostLargestPositiveClauseSize_Functions;
+		case Sorter::LeastLargestPositiveClauseSize:	return &LeastLargestPositiveClauseSize_Functions;
+		case Sorter::MostLargestPositiveClauseCount:	return &MostLargestPositiveClauseCount_Functions;
+		case Sorter::LeastLargestPositiveClauseCount:	return &LeastLargestPositiveClauseCount_Functions;
+		case Sorter::MostTotalUsed:						return &MostTotalUsed_Functions;
+		case Sorter::LeastTotalUsed:					return &LeastTotalUsed_Functions;
+		case Sorter::MostClauseCountSmallestToLargest:	return &MostClauseCountSmallestToLargest_Functions;
+		case Sorter::MostClauseCountLargestToSmallest:	return &MostClauseCountLargestToSmallest_Functions;
+		case Sorter::LeastClauseCountSmallestToLargest:	return &LeastClauseCountSmallestToLargest_Functions;
+		case Sorter::LeastClauseCountLargestToSmallest:	return &LeastClauseCountLargestToSmallest_Functions;
+		case Sorter::HasNoSolution:						return &HasNoSolution_Functions;
+		case Sorter::HasRequired:						return &HasRequired_Functions;
+
+#ifdef STATISTICS_STEPS
+		case Sorter::MostAbsoluteScore:					return &MostAbsoluteScore_Functions;
+		case Sorter::LeastAbsoluteScore:				return &LeastAbsoluteScore_Functions;
+#endif
+
+		default:
+			assert(false);
+			return NULL;
 	}
 }
-

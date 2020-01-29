@@ -75,6 +75,7 @@ Ideas:
 ** Is the score scaling correctly?
 ** Could scoring be optimized in a different spot in the decision process?
 ** Is the statistic decider actually better?
+** Maybe the assertion at VariableState:262 has an answer
 * Scoring seems good at finding single solutions, but terrible at evaluating an entire tree
 ** Should I reorder the sort function?
 
