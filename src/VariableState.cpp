@@ -259,8 +259,9 @@ void VariableState::updateStatistics(int step)
 		assert(this->satState->_getState(iter->second->getClause()) == iter->second);
 		assert(this->satState->_getState(iter->second->getClause())->getClause() == iter->second->getClause());
 		assert(this->ActiveClauses->find(this->satState->_getState(iter->second->getClause())->getClause()->getIdentifier()) != this->ActiveClauses->cend());
-		//TODO: Why is this assertion bad?
-		//assert(iter->second->getCurrentSize() == 0 || 0.0 != iter->second->getProbabiltyPositive(step - 1));
+		assert(iter->second->getProbabiltyPositive(step - 1) >= 0.0);
+		assert(iter->second->getProbabiltyPositive(step - 1) <= 1.0);
+		assert(iter->second->getCurrentSize() == 0 || 0.0 != iter->second->getProbabiltyPositive(step - 1));
 		if (iter->second->getClause()->Contains(this->getVariable(), true)) 
 		{
 			scorePositive += 1.0 / iter->second->getProbabiltyPositive(step-1);
@@ -268,10 +269,14 @@ void VariableState::updateStatistics(int step)
 		else 
 		{
 			assert(iter->second->getClause()->Contains(this->getVariable(), false));
-			scoreNegative += 1.0 / (1.0 - iter->second->getProbabiltyPositive(step-1));
+			scoreNegative += 1.0 / iter->second->getProbabiltyPositive(step-1);
 		}
 	}
 
+	assert(!isinf(scorePositive));
+	assert(!isinf(scoreNegative));
+	assert(scorePositive >= 0.0);
+	assert(scoreNegative >= 0.0);
 	this->score[step] = scorePositive - scoreNegative;
 	this->probabiltyPositive[step] = scoreNegative == 0.0 ? 1.0 : scorePositive / (scorePositive + scoreNegative);
 }

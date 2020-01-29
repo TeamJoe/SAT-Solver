@@ -13,7 +13,7 @@
 	#define SOLVER solveDepthSat
 	#define PARALLEL
 	#define LET_ALL_SOLVERS_FINISH
-	#define FIND_ALL_SOLUTIONS
+	//#define FIND_ALL_SOLUTIONS
 	#ifdef _DEBUG
 		//#define OUTPUT_INTERMEDIATE_SOLUTION
 		#define MAX_DEPTH_LIMIT 300
@@ -24,7 +24,11 @@
 		//#define SECONDARY_SET 16
 		//#define THIRD_SET 8
 		#define FOURTH_SET 16
-		#define SET_SIZE 23
+		#ifdef STATISTICS_STEPS
+			#define SET_SIZE 34
+		#else
+			#define SET_SIZE 12
+		#endif
 	#endif
 #else 
 	#define MAX_DEPTH_LIMIT 0

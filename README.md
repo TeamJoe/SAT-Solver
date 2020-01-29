@@ -75,9 +75,12 @@ Ideas:
 ** Is the score scaling correctly?
 ** Could scoring be optimized in a different spot in the decision process?
 ** Is the statistic decider actually better?
-** Maybe the assertion at VariableState:262 has an answer
 * Scoring seems good at finding single solutions, but terrible at evaluating an entire tree
 ** Should I reorder the sort function?
+** Should I add variance to allow the sorter to continue downwards?
+*** Two doubles are rarely equal
+*** If they are close, it should use other functions anyways?
+**** Within 1%, 5%, 10%?
 
 --Connection Sorter--
 * Evalute the most connected variable (Highest sibling count)
@@ -103,3 +106,9 @@ Ideas:
 ** Don't use variable names, should name variables by some more deterministic, like usage, sibling counts, etc
 * Is there a way to cache where all the literals are opposite?
 ** This would have the same solution, just opposite values.
+* Cache trees that took more variable attempts then desired. (Difficult branches)
+
+
+Should include in output
+* How many variables were decided on a tie
+* How many decisions were decided on a tie

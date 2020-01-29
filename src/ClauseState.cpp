@@ -57,7 +57,14 @@ void ClauseState::updateStatistics(int step)
 	for (unsigned int i = 0; i < this->clause->_size; i++)
 	{
 		if (this->variables[i]->isActive()) {
-			probabilityNegative = probabilityNegative * (1.0 - this->variables[i]->getProbabiltyPositive(step));
+			assert(this->variables[i]->getProbabiltyPositive(step) >= 0.0);
+			assert(this->variables[i]->getProbabiltyPositive(step) <= 1.0);
+			assert(this->clause->clause[i]->getVariable() == this->variables[i]->getVariable());
+			if (this->clause->clause[i]->GetType()) {
+				probabilityNegative = probabilityNegative * (1.0 - this->variables[i]->getProbabiltyPositive(step));
+			} else {
+				probabilityNegative = probabilityNegative * this->variables[i]->getProbabiltyPositive(step);
+			}
 		}
 	}
 	probabiltyPositive[step] = 1.0 - probabilityNegative;
