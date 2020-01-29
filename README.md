@@ -76,6 +76,7 @@ Ideas:
 ** Could scoring be optimized in a different spot in the decision process?
 ** Is the statistic decider actually better?
 * Scoring seems good at finding single solutions, but terrible at evaluating an entire tree
+** Should I reorder the sort function?
 
 --Connection Sorter--
 * Evalute the most connected variable (Highest sibling count)
@@ -98,3 +99,6 @@ Ideas:
 * Store Least clauses with most variables, and look for that cache element?
 ** How would I easily look that up?
 * Is there a way to cache structure without caching values?
+** Don't use variable names, should name variables by some more deterministic, like usage, sibling counts, etc
+* Is there a way to cache where all the literals are opposite?
+** This would have the same solution, just opposite values.
