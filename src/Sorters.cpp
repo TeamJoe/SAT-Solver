@@ -30,6 +30,12 @@ const VariableState* HasRequired(const VariableState* v1, const VariableState* v
 		? v1 : v2;
 }
 
+const VariableState* HasQuickPath(const VariableState* v1, const VariableState* v2)
+{
+	return v1->getSmallestClauseSize() < 3
+		? v1 : v2;
+}
+
 const VariableState * LeastTotalUsed(const VariableState * v1, const VariableState * v2)
 {
 	return v1->getTotalNumber() < v2->getTotalNumber() ? v1 : v2;
@@ -285,6 +291,12 @@ bool HasRequiredCompare(const VariableState* v1, const VariableState* v2)
 		&& v2->getNegativesSize() > 0 && v2->getPositivesSize() > 0;
 }
 
+bool HasQuickPathCompare(const VariableState* v1, const VariableState* v2)
+{
+	return (v1->getSmallestClauseSize() > 2 && v2->getSmallestClauseSize() > 2)
+		|| (v1->getSmallestClauseSize() < 3 && v2->getSmallestClauseSize() < 3);
+}
+
 bool TotalUsed(const VariableState * v1, const VariableState * v2)
 {
 	return v1->getTotalNumber() == v2->getTotalNumber();
@@ -531,6 +543,7 @@ static SortFunction LeastClauseCountSmallestToLargest_Functions =	{ AllClauseCou
 static SortFunction LeastClauseCountLargestToSmallest_Functions =	{ AllClauseCounts, LeastClauseCountLargestToSmallest };
 static SortFunction HasNoSolution_Functions =						{ HasNoSolutionCompare, HasNoSolution };
 static SortFunction HasRequired_Functions =							{ HasRequiredCompare, HasRequired };
+static SortFunction HasQuickPath_Functions =						{ HasQuickPathCompare, HasQuickPath };
 
 #ifdef STATISTICS_STEPS
 static SortFunction MostAbsoluteScore_Functions =					{ AbsoluteScore, MostAbsoluteScore };
@@ -579,6 +592,7 @@ SortFunction* getSortFunction(Sorter sorter)
 		case Sorter::LeastClauseCountLargestToSmallest:	return &LeastClauseCountLargestToSmallest_Functions;
 		case Sorter::HasNoSolution:						return &HasNoSolution_Functions;
 		case Sorter::HasRequired:						return &HasRequired_Functions;
+		case Sorter::HasQuickPath:						return &HasQuickPath_Functions;
 
 #ifdef STATISTICS_STEPS
 		case Sorter::MostAbsoluteScore:					return &MostAbsoluteScore_Functions;

@@ -51,6 +51,7 @@ enum class Sorter {
 	LeastClauseCountLargestToSmallest,
 	HasNoSolution,
 	HasRequired,
+	HasQuickPath,
 	MostAbsoluteScore,
 	LeastAbsoluteScore
 };
