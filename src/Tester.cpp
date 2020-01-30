@@ -52,7 +52,163 @@ private:
 #include <string>
 #include <windows.h>
 
-void Test(Timer* totalTimer, double compileTime, SAT* sat, const char* fileName, ofstream& out, ofstream& solutions, const int result) {
+void outputTimers(double compileTime, double analyzeTime, double solveTime, double outputTime, double cleanTime, double totalTime, ofstream& out)
+{
+	out << "," << compileTime
+		<< "," << analyzeTime
+		<< "," << solveTime
+		<< "," << outputTime
+		<< "," << cleanTime
+		<< "," << totalTime;
+	out.flush();
+}
+
+void Clean(SATSolver* solver)
+{
+	solver->cleanSolution();
+}
+
+void OutputWinnerFile(SAT* sat, const char* fileName, SATSolver* solver, Solution* output, ofstream& winner, const int result)
+{
+	winner << "," << result;
+	winner << "," << sat->VariableCount();
+	winner << "," << sat->ClauseCount();
+
+	unsigned int winningCount = INT32_MAX;
+	for (list<FunctionResult>::const_iterator iter = output->individualResults.cbegin(); iter != output->individualResults.cend(); iter++)
+	{
+		if (iter->variableAttempts < winningCount)
+		{
+			winningCount = iter->variableAttempts;
+		}
+	}
+
+	for (list<FunctionResult>::const_iterator iter = output->individualResults.cbegin(); iter != output->individualResults.cend(); iter++)
+	{
+		winner << "," << iter->name
+			<< "," << (int)iter->solved
+			<< "," << iter->variableAttempts
+			<< "," << iter->solutions->size()
+			<< "," << (((double)iter->variableAttempts) / ((double)winningCount));
+	}
+}
+
+void OutputSolutionFile(SAT* sat, const char* fileName, SATSolver* solver, Solution* output, ofstream& solutions, const int result)
+{
+	solutions << "," << result;
+	solutions << "," << static_cast<int>(output->solved);
+	solutions << "," << sat->VariableCount();
+	solutions << "," << sat->ClauseCount();
+	solutions << "," << fileName;
+
+	if (output->solved == SolvedStates::NOT_COMPLETED || output->solved == SolvedStates::COMPLETED_UNKNOWN)
+	{
+		solutions << ",(UNKNOWN),0,";
+	}
+	else if (output->solved == SolvedStates::COMPLETED_NO_SOLUTION || output->solved == SolvedStates::NOT_COMPLETED_NO_SOLUTION)
+	{
+		solutions << ",(FALSE),0,";
+	}
+	else
+	{
+		solutions << ",(TRUE)";
+		if (output->solutions != NULL)
+		{
+			solutions << "," << output->solutions->size() << ",";
+			for (list<const int*>::const_iterator iter = output->solutions->cbegin(); iter != output->solutions->cend(); iter++)
+			{
+				solutions << "|(" << (*iter)[0] << ")(:";
+				assert((*iter)[(*iter)[0] + 1] == NULL);
+				for (int i = 1; i < ((*iter)[0] + 1); i++)
+				{
+					solutions << (*iter)[i] << ":";
+				}
+				solutions << ")|";
+			}
+		}
+		else
+		{
+			solutions << "," << 0;
+		}
+	}
+}
+
+void OutputOutFile(SAT* sat, const char* fileName, SATSolver* solver, Solution* output, ofstream& out, const int result)
+{
+	out << "," << result;
+	out << "," << sat->VariableCount();
+	out << "," << sat->ClauseCount();
+	out << "," << fileName;
+
+	if (output->solved == SolvedStates::NOT_COMPLETED || output->solved == SolvedStates::COMPLETED_UNKNOWN)
+	{
+		out << ",(UNKNOWN),0";
+	}
+	else if (output->solved == SolvedStates::COMPLETED_NO_SOLUTION || output->solved == SolvedStates::NOT_COMPLETED_NO_SOLUTION)
+	{
+		out << ",(FALSE),0";
+	}
+	else
+	{
+		out << ",(TRUE)";
+		if (output->solutions != NULL)
+		{
+			out << "," << output->solutions->size();
+		}
+		else
+		{
+			out << "," << 0;
+		}
+	}
+}
+
+void OutputConsole(SAT* sat, const char* fileName, SATSolver* solver, Solution* output, const int result)
+{
+	if (output->solved == SolvedStates::NOT_COMPLETED || output->solved == SolvedStates::COMPLETED_UNKNOWN)
+	{
+		cout << "Unknown";
+		cout.flush();
+	}
+	else if (output->solved == SolvedStates::COMPLETED_NO_SOLUTION || output->solved == SolvedStates::NOT_COMPLETED_NO_SOLUTION)
+	{
+		cout << "False";
+		cout.flush();
+	}
+	else
+	{
+		cout << "True";
+		cout.flush();
+	}
+}
+
+void OutputResult(SAT* sat, const char* fileName, SATSolver* solver, ofstream& out, ofstream& solutions, ofstream& winners, const int result)
+{
+	Solution* output = &solver->analysisResults(out, &ANALYZER);
+
+	OutputConsole(sat, fileName, solver, output, result);
+	OutputOutFile(sat, fileName, solver, output, out, result);
+	OutputSolutionFile(sat, fileName, solver, output, solutions, result);
+	OutputWinnerFile(sat, fileName, solver, output, winners, result);
+
+	delete output;
+}
+
+void Solve(SAT* sat, SATSolver* solver)
+{
+	void* variable = VARIABLE_CREATOR(sat, 0, SET_SIZE, NULL);
+#ifdef PARALLEL
+	solver->runSolverParallel(sat, SET_SIZE, variable, &VARIABLE_CREATOR, &SOLVER);
+#else
+	solver->runSolver(sat, variable, SOLVER);
+#endif
+}
+
+SATSolver* Analyze()
+{
+	return new SATSolver();
+}
+
+void Test(Timer* totalTimer, double compileTime, SAT* sat, const char* fileName, ofstream& out, ofstream& solutions, ofstream& winners, const int result) {
 	assert(sat != NULL);
 	SAT* sat2;
 #ifdef _DEBUG
@@ -73,109 +229,48 @@ void Test(Timer* totalTimer, double compileTime, SAT* sat, const char* fileName,
 
 	cout << "(Analyzing)";
 	cout.flush();
-
 	timer->reset();
-	SATSolver* solver = new SATSolver();
+	SATSolver* solver = Analyze();
 	analyzeTime = timer->elapsed();
+
 	cout << "(Solving)";
 	cout.flush();
-
 	timer->reset();
-	void* variable = VARIABLE_CREATOR(sat, 0, SET_SIZE, NULL);
-#ifdef PARALLEL
-	solver->runSolverParallel(sat, SET_SIZE, variable, &VARIABLE_CREATOR, &SOLVER);
-#else
-	solver->runSolver(sat, variable, SOLVER);
-#endif
+	Solve(sat, solver);
 	solveTime = timer->elapsed();
+
 	cout << "(Outtputing): ";
 	cout.flush();
 	timer->reset();
-	Solution* output = &solver->analysisResults(out, &ANALYZER);
+	OutputResult(sat, fileName, solver, out, solutions, winners, result);
+	outputTime = timer->elapsed();
 
-	out << result;
-	out << "," << sat->VariableCount();
-	out << "," << sat->ClauseCount();
-	out << "," << fileName;
+	cout << "(Cleaning): ";
+	cout.flush();
+	timer->reset();
+	Clean(solver);
+	cleanTime = timer->elapsed();
 
-	solutions << "," << result;
-	solutions << "," << static_cast<int>(output->solved);
-	solutions << "," << sat->VariableCount();
-	solutions << "," << sat->ClauseCount();
-	solutions << "," << fileName;
-	if (output->solved == SolvedStates::NOT_COMPLETED || output->solved == SolvedStates::COMPLETED_UNKNOWN)
-	{
-		out << ",(UNKNOWN),0";
-		solutions << ",(UNKNOWN),0,";
-		cout << "Unknown";
-		cout.flush();
-	}
-	else if (output->solved == SolvedStates::COMPLETED_NO_SOLUTION || output->solved == SolvedStates::NOT_COMPLETED_NO_SOLUTION)
-	{
-		out << ",(FALSE),0";
-		solutions << ",(FALSE),0,";
-		cout << "False";
-		cout.flush();
-	}
-	else
-	{
-		out << ",(TRUE)";
-		solutions << ",(TRUE)";
-		cout << "True";
-		cout.flush();
+	totalTime = totalTimer->elapsed();
+	cout << "(" << totalTime << ")";
+	cout.flush();
 
-		if (output->solutions != NULL)
-		{
-			out << "," << output->solutions->size();
-			solutions << "," << output->solutions->size() << ",";
-			for (list<const int*>::const_iterator iter = output->solutions->cbegin(); iter != output->solutions->cend(); iter++)
-			{
-				solutions << "|(" << (*iter)[0] << ")(:";
-				assert((*iter)[(*iter)[0] + 1] == NULL);
-				for (int i = 1; i < ((*iter)[0] + 1); i++)
-				{
-					solutions << (*iter)[i] << ":";
-				}
-				solutions << ")|";
-			}
-		}
-		else
-		{
-			out << "," << 0;
-			solutions << "," << 0;
-		}
-	}
+	outputTimers(compileTime, analyzeTime, solveTime, outputTime, cleanTime, totalTime, out);
+
+	cout << endl;
+	cout.flush();
+	out << endl;
+	out.flush();
 	solutions << endl;
 	solutions.flush();
+	winners << endl;
+	winners.flush();
 
-	outputTime = timer->elapsed();
-	out << "," << compileTime
-		<< "," << analyzeTime
-		<< "," << solveTime
-		<< "," << outputTime;
-	out.flush();
-
-	cout << " :(Cleaning)";
-	cout.flush();
-
-	timer->reset();
-	solver->cleanSolution();
-	cleanTime = timer->elapsed();
-	totalTime = totalTimer->elapsed();
-	out << "," << cleanTime
-		<< "," << totalTime
-		<< endl;
-	out.flush();
-
-	cout << "(" << totalTime << ")" << endl;
-	cout.flush();
-
-	delete output;
 	delete solver;
 	delete timer;
 }
 
-void CNFTest(const char* perfix, const unsigned int start, const unsigned int end, ofstream& file, ofstream& out, ofstream& solutions, const int result)
+void CNFTest(const char* perfix, const unsigned int start, const unsigned int end, ofstream& file, ofstream& out, ofstream& solutions, ofstream& winners, const int result)
 {
 	Timer* totalTimer = new Timer();
 	Timer* timer = new Timer();
@@ -201,16 +296,17 @@ void CNFTest(const char* perfix, const unsigned int start, const unsigned int en
 		compileTime = timer->elapsed();
 		assert(sat != NULL);
 
-		out << dec << i << ",";
+		out << dec << i;
 		solutions << i;
-		Test(totalTimer, compileTime, sat, ss.str().c_str(), out, solutions, result);
+		winners << i;
+		Test(totalTimer, compileTime, sat, ss.str().c_str(), out, solutions, winners, result);
 		delete sat;
 	}
 	delete totalTimer;
 	delete timer;
 }
 
-void InputTest(const char* fileName, ofstream& out, ofstream& solutions, const int result)
+void InputTest(const char* fileName, ofstream& out, ofstream& solutions, ofstream& winners, const int result)
 {
 	Timer* totalTimer = new Timer();
 	Timer* timer = new Timer();
@@ -235,9 +331,10 @@ void InputTest(const char* fileName, ofstream& out, ofstream& solutions, const i
 			break;
 		}
 
-		out << dec << i << ",";
+		out << dec << i;
 		solutions << i;
-		Test(totalTimer, compileTime, sat, fileName, out, solutions, result);
+		winners << i;
+		Test(totalTimer, compileTime, sat, fileName, out, solutions, winners, result);
 		delete sat;
 	}
 	delete totalTimer;

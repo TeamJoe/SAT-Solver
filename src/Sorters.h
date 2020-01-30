@@ -53,7 +53,9 @@ enum class Sorter {
 	HasRequired,
 	HasQuickPath,
 	MostAbsoluteScore,
-	LeastAbsoluteScore
+	LeastAbsoluteScore,
+	MostPercent1Score,
+	LeastPercent1Score
 };
 
 SortFunction* getSortFunction(Sorter sorter);

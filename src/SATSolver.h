@@ -35,10 +35,19 @@ struct ReturnValue
 	void * variables;
 };
 
+struct FunctionResult
+{
+	const char* name;
+	unsigned int variableAttempts;
+	SolvedStates solved;
+	list<const int*>* solutions;
+};
+
 struct Solution
 {
 	list<const int *> * solutions;
 	SolvedStates solved;
+	list<FunctionResult> individualResults;
 };
 
 class SATSolver
@@ -50,7 +59,6 @@ private:
 	unsigned int totalThreads;
 
 protected:
-	list<const char*>* getFastestMethods() const;
 	void _runSolverParallel(SolverFunction solverFunction, const unsigned int currentThread, void * variables);
 public:
 

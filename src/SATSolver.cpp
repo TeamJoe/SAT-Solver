@@ -110,32 +110,6 @@ void SATSolver::cleanSolution()
 	this->totalThreads = 0;
 }
 
-list<const char*>* SATSolver::getFastestMethods() const
-{
-	list<const char*>* ret = new list<const char*>();
-	unsigned long long attempts = MAXLONGLONG;
-	for (unsigned int i = 0; i < this->totalThreads; i++)
-	{
-		if (this->returnValues[i]->solved == SolvedStates::COMPLETED_UNKNOWN
-			|| this->returnValues[i]->solved == SolvedStates::COMPLETED_NO_SOLUTION
-			|| this->returnValues[i]->solved == SolvedStates::COMPLETED_SOLUTION)
-		{
-			if (this->returnValues[i]->state->getState()->getVariableAttempts() < attempts)
-			{
-				attempts = this->returnValues[i]->state->getState()->getVariableAttempts();
-				ret->clear();
-				ret->push_back(this->returnValues[i]->name);
-			}
-			else if (attempts == this->returnValues[i]->state->getState()->getVariableAttempts())
-			{
-				ret->push_back(this->returnValues[i]->name);
-			}
-		}
-	}
-
-	return ret;
-}
-
 Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysisFunction)
 {
 	assert(this->returnValues != NULL);
@@ -144,16 +118,6 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 	solution->solved = SolvedStates::NOT_COMPLETED;
 	solution->solutions = NULL;
 
-	list<const char*>* fastestMethods = this->getFastestMethods();
-	file << "|";
-	for (list<const char*>::const_iterator iter = fastestMethods->cbegin(); iter != fastestMethods->cend(); iter++)
-	{
-		file << (*iter) << "|";
-	}
-	file << ",";
-	delete fastestMethods;
-
-	file << "|";
 	for(unsigned int i = 0; i < this->totalThreads; i++)
 	{
 		//Adjust the solution variable
@@ -218,28 +182,8 @@ Solution & SATSolver::analysisResults(ofstream & file, AnalysisFunction analysis
 			assert(this->returnValues[i]->solutions == NULL || this->returnValues[i]->solutions->size() == 0);
 		}
 
-		//Output other analysis to file
-		if (this->returnValues[i]->name != NULL)
-		{
-			file << this->returnValues[i]->name << ": ";
-		}
-		file << static_cast<int>(this->returnValues[i]->solved);
-		file << " (" << this->returnValues[i]->state->getState()->getVariableAttempts() << ")";
-		if (this->returnValues[i]->solutions == NULL)
-		{
-			file << " (0)";
-		}
-		else
-		{
-			file << " (" << this->returnValues[i]->solutions->size() << ")";
-		}
-		if (analysisFunction != NULL)
-		{
-			analysisFunction(file, this->returnValues[i]);
-		}
-		file << "|";
+		solution->individualResults.push_back({ this->returnValues[i]->name, this->returnValues[i]->state->getState()->getVariableAttempts(), this->returnValues[i]->solved, this->returnValues[i]->solutions });
 	}
-	file << ",";
 	return *solution;
 }
 

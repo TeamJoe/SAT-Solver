@@ -382,6 +382,12 @@ bool AbsoluteScore(const VariableState* v1, const VariableState* v2)
 {
 	return v1->getAbsoluteScore(STATISTICS_STEPS - 1) == v2->getAbsoluteScore(STATISTICS_STEPS - 1);
 }
+bool Percent1Score(const VariableState* v1, const VariableState* v2)
+{
+	double d1 = v1->getAbsoluteScore(STATISTICS_STEPS - 1);
+	double d2 = v2->getAbsoluteScore(STATISTICS_STEPS - 1);
+	return ((d1 * 0.99) <= d2) && (d2 <= (d1 * 1.01));
+}
 #endif
 
 //******************************
@@ -548,6 +554,8 @@ static SortFunction HasQuickPath_Functions =						{ HasQuickPathCompare, HasQuic
 #ifdef STATISTICS_STEPS
 static SortFunction MostAbsoluteScore_Functions =					{ AbsoluteScore, MostAbsoluteScore };
 static SortFunction LeastAbsoluteScore_Functions =					{ AbsoluteScore, LeastAbsoluteScore };
+static SortFunction MostPercent1Score_Functions =					{ Percent1Score, MostAbsoluteScore };
+static SortFunction LeastPercent1Score_Functions =					{ Percent1Score, LeastAbsoluteScore };
 #endif
 
 SortFunction* getSortFunction(Sorter sorter)
@@ -597,6 +605,8 @@ SortFunction* getSortFunction(Sorter sorter)
 #ifdef STATISTICS_STEPS
 		case Sorter::MostAbsoluteScore:					return &MostAbsoluteScore_Functions;
 		case Sorter::LeastAbsoluteScore:				return &LeastAbsoluteScore_Functions;
+		case Sorter::MostPercent1Score:					return &MostPercent1Score_Functions;
+		case Sorter::LeastPercent1Score:				return &LeastPercent1Score_Functions;
 #endif
 
 		default:

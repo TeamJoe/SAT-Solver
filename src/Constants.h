@@ -23,7 +23,11 @@
 		//#define ORGINAL_SET 8
 		//#define SECONDARY_SET 16
 		//#define THIRD_SET 8
-		#define FOURTH_SET 16
+		#ifdef STATISTICS_STEPS
+			#define FOURTH_SET 34
+		#else
+			#define FOURTH_SET 12
+		#endif
 		#ifdef STATISTICS_STEPS
 			#define SET_SIZE 34
 		#else
