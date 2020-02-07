@@ -263,6 +263,23 @@ bool Variable::isValid() const
 {
 	return this->Variable_Number > 0;
 }
+unsigned int Variable::getSiblingCount(const Variable* variable) const
+{
+	int value = 0;
+	if (this->positiveSiblingCount->find(variable->Variable_Number) != this->positiveSiblingCount->cend()) {
+		value += this->positiveSiblingCount->find(variable->Variable_Number)->second->size();
+	}
+	if (this->positiveSiblingCount->find(-1 * variable->Variable_Number) != this->positiveSiblingCount->cend()) {
+		value += this->positiveSiblingCount->find(-1 * variable->Variable_Number)->second->size();
+	}
+	if (this->negativeSiblingCount->find(variable->Variable_Number) != this->negativeSiblingCount->cend()) {
+		value += this->negativeSiblingCount->find(variable->Variable_Number)->second->size();
+	}
+	if (this->negativeSiblingCount->find(-1 * variable->Variable_Number) != this->negativeSiblingCount->cend()) {
+		value += this->negativeSiblingCount->find(-1 * variable->Variable_Number)->second->size();
+	}
+	return value;
+}
 
 //******************************
 //------------------------------

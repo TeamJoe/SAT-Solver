@@ -5,6 +5,7 @@ struct SortFunction;
 #define SAT_STATE_H
 
 #include <map>
+#include <unordered_map>
 
 #include "Variable.h"
 #include "Clause.h"
@@ -31,6 +32,8 @@ private:
 	map <unsigned int, VariableState *> * variables;
 	map <unsigned int, ClauseState *> * clauses;
 
+	unordered_map <unsigned int, VariableState*>* activeVariables;
+	unordered_map <unsigned int, ClauseState*>* activeClauses;
 	unsigned int activeVariableCount;
 	unsigned int activeClauseCount;
 
@@ -39,6 +42,11 @@ private:
 	void deactivateClause(ClauseState* clause, unsigned int oldClauseCount);
 	void updateClause(ClauseState* clause, unsigned int oldClauseCount, unsigned int newClauseCount);
 	void reactivateClause(ClauseState* clause, unsigned int newClauseCount);
+
+#ifdef _DEBUG
+	void verify() const;
+#endif
+
 protected:
 	ClauseState * _getState(const Clause * clause);
 	VariableState * _getState(const Variable * variable);

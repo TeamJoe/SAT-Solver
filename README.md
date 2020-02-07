@@ -61,6 +61,7 @@ Max Clauses -> ∑(1,v) 2^x/x! * (v + x -1)!/(v-1)!
 -----------------
 
 Ideas:
+* Should regularly prune clauses to remove duplicates during solve
 
 --Sifter--
 * While evaluating should check for certain graph conditions
@@ -93,6 +94,7 @@ Ideas:
 * Could look for maximum splits
 ** Function to check for variables with most siblings
 ** Function to check for variable with most `unique` (in-laws) siblings. Siblings your siblings don't also have
+* Can speed up SATState::getSplit() by using maps and adding current sibling map to VariableState
 
 --Caching--
 * What is the same cached value?
@@ -107,6 +109,11 @@ Ideas:
 * Is there a way to cache where all the literals are opposite?
 ** This would have the same solution, just opposite values.
 * Cache trees that took more variable attempts then desired. (Difficult branches)
+* If part of the graph matches a cache value
+** If the cache value has no solutions, we know that the graph has no matches.
+*** What are some common, easy to recongize graphs without solutions?
+** If the cache value has solutions, we know that the graph could potentially have a solution.
+
 
 
 Should include in output

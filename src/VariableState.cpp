@@ -24,6 +24,7 @@ VariableState::VariableState(SATState * sat, const Variable * v)
 #ifdef SIBLING_CALCULATIONS
 	this->positiveSiblingCount = NULL;
 	this->negativeSiblingCount = NULL;
+	this->siblingCount = NULL;
 #endif
 	this->NegativeClauseSizes = NULL;
 	this->PositiveClauseSizes = NULL;
@@ -100,8 +101,9 @@ VariableState::VariableState(SATState * sat, const Variable * v)
 	assert(this->PositiveClauseSizes != NULL);
 
 #ifdef SIBLING_CALCULATIONS
-	this->positiveSiblingCount = new map <int, int>();
-	this->negativeSiblingCount = new map <int, int>();
+	this->positiveSiblingCount = new unordered_map <int, int>(this->variable->positiveSiblingCount->size() * 2);
+	this->negativeSiblingCount = new unordered_map <int, int>(this->variable->negativeSiblingCount->size() * 2);
+	this->siblingCount = new unordered_map <int, int>(this->variable->_parent->VariableCount() * 2);
 	for (map <int, map<unsigned int, Clause*>*>::const_iterator iter = v->positiveSiblingCount->cbegin(); iter != v->positiveSiblingCount->cend(); iter++)
 	{
 		this->positiveSiblingCount->insert_or_assign(iter->first, iter->second->size());
@@ -111,6 +113,17 @@ VariableState::VariableState(SATState * sat, const Variable * v)
 		}
 		this->negativeSiblingCount->insert_or_assign(iter->first, 0);
 		this->negativeSiblingCount->insert_or_assign(-1 * iter->first, 0);
+
+		unordered_map <int, int>::iterator key = this->siblingCount->find(iter->first < 0 ? -1 * iter->first : iter->first);
+		if (key == this->siblingCount->cend())
+		{
+
+			this->siblingCount->insert_or_assign(iter->first < 0 ? -1 * iter->first : iter->first, iter->second->size());
+		}
+		else
+		{
+			key->second += iter->second->size();
+		}
 	}
 	assert(this->positiveSiblingCount->size() >= v->positiveSiblingCount->size());
 	assert(this->positiveSiblingCount->size() == this->negativeSiblingCount->size());
@@ -129,6 +142,17 @@ VariableState::VariableState(SATState * sat, const Variable * v)
 		if (this->positiveSiblingCount->find(-1 * iter->first) == this->positiveSiblingCount->cend())
 		{
 			this->positiveSiblingCount->insert_or_assign(-1 * iter->first, 0);
+		}
+
+		unordered_map <int, int>::iterator key = this->siblingCount->find(iter->first < 0 ? -1 * iter->first : iter->first);
+		if (key == this->siblingCount->cend())
+		{
+
+			this->siblingCount->insert_or_assign(iter->first < 0 ? -1 * iter->first : iter->first, iter->second->size());
+		}
+		else
+		{
+			key->second += iter->second->size();
 		}
 	}
 	assert(this->negativeSiblingCount->size() >= v->negativeSiblingCount->size());
@@ -154,8 +178,9 @@ VariableState::VariableState(SATState * sat, VariableState * v)
 	this->PositiveClauseSizes = new vector <unsigned int>(v->PositiveClauseSizes->size());
 
 #ifdef SIBLING_CALCULATIONS
-	this->positiveSiblingCount = new map <int, int>();
-	this->negativeSiblingCount = new map <int, int>();
+	this->positiveSiblingCount = new unordered_map <int, int>(this->variable->positiveSiblingCount->size() * 2);
+	this->negativeSiblingCount = new unordered_map <int, int>(this->variable->negativeSiblingCount->size() * 2);
+	this->siblingCount = new unordered_map <int, int>(this->variable->_parent->VariableCount() * 2);
 #endif
 
 	this->ActiveClauses = new map <unsigned int, ClauseState *>();
@@ -183,15 +208,20 @@ VariableState::VariableState(SATState * sat, VariableState * v)
 	assert(this->InactiveClauses->size() == v->InactiveClauses->size());
 
 #ifdef SIBLING_CALCULATIONS
-	for (map <int, int>::const_iterator iter = v->positiveSiblingCount->cbegin(); iter != v->positiveSiblingCount->cend(); iter++)
+	for (unordered_map <int, int>::const_iterator iter = v->positiveSiblingCount->cbegin(); iter != v->positiveSiblingCount->cend(); iter++)
 	{
 		this->positiveSiblingCount->insert_or_assign(iter->first, iter->second);
 	}
 	assert(this->positiveSiblingCount->size() == v->positiveSiblingCount->size());
 
-	for (map <int, int>::const_iterator iter = v->negativeSiblingCount->cbegin(); iter != v->negativeSiblingCount->cend(); iter++)
+	for (unordered_map <int, int>::const_iterator iter = v->negativeSiblingCount->cbegin(); iter != v->negativeSiblingCount->cend(); iter++)
 	{
 		this->negativeSiblingCount->insert_or_assign(iter->first, iter->second);
+	}
+
+	for (unordered_map <int, int>::const_iterator iter = v->siblingCount->cbegin(); iter != v->siblingCount->cend(); iter++)
+	{
+		this->siblingCount->insert_or_assign(iter->first, iter->second);
 	}
 	assert(this->negativeSiblingCount->size() == v->negativeSiblingCount->size());
 	assert(this->positiveSiblingCount->size() == this->negativeSiblingCount->size());
@@ -232,6 +262,10 @@ VariableState::~VariableState()
 	if (this->negativeSiblingCount != NULL) {
 		delete this->negativeSiblingCount;
 		this->negativeSiblingCount = NULL;
+	}
+	if (this->siblingCount != NULL) {
+		delete this->siblingCount;
+		this->siblingCount = NULL;
 	}
 #endif
 
@@ -511,6 +545,8 @@ void VariableState::addClause(const ClauseState * clauseState, const unsigned in
 			{
 				assert(this->positiveSiblingCount->find(clause->value[i]) != this->positiveSiblingCount->cend());
 				this->positiveSiblingCount->find(clause->value[i])->second++;
+				int key = clause->value[i] < 0 ? -1 * clause->value[i] : clause->value[i];
+				this->siblingCount->find(key)->second++;
 			}
 		}
 #endif
@@ -530,6 +566,8 @@ void VariableState::addClause(const ClauseState * clauseState, const unsigned in
 			{
 				assert(this->negativeSiblingCount->find(clause->value[i]) != this->negativeSiblingCount->cend());
 				this->negativeSiblingCount->find(clause->value[i])->second++;
+				int key = clause->value[i] < 0 ? -1 * clause->value[i] : clause->value[i];
+				this->siblingCount->find(key)->second++;
 			}
 		}
 #endif
@@ -569,6 +607,8 @@ void VariableState::removeClause(const ClauseState * clauseState, const unsigned
 			{
 				assert(this->positiveSiblingCount->find(clause->value[i]) != this->positiveSiblingCount->cend());
 				this->positiveSiblingCount->find(clause->value[i])->second--;
+				int key = clause->value[i] < 0 ? -1 * clause->value[i] : clause->value[i];
+				this->siblingCount->find(key)->second--;
 			}
 		}
 #endif
@@ -590,6 +630,8 @@ void VariableState::removeClause(const ClauseState * clauseState, const unsigned
 			{
 				assert(this->negativeSiblingCount->find(clause->value[i]) != this->negativeSiblingCount->cend());
 				this->negativeSiblingCount->find(clause->value[i])->second--;
+				int key = clause->value[i] < 0 ? -1 * clause->value[i] : clause->value[i];
+				this->siblingCount->find(key)->second--;
 			}
 		}
 #endif
@@ -631,6 +673,15 @@ bool VariableState::hasSolution() const
 	return (smallestNegative != 0 && smallestPositive != 0 && !(smallestNegative == 1 && smallestPositive == 1));
 	*/
 	return (getNegativeClauseCount(0) == 0 && getPositiveClauseCount(0) == 0 && (getNegativeClauseCount(1) == 0 || getPositiveClauseCount(1) == 0));
+}
+unsigned int VariableState::getSiblingCount(const VariableState* v) const
+{
+	unordered_map<int, int>::const_iterator key = this->siblingCount->find(v->variable->Variable_Number);
+	if (key == this->siblingCount->cend())
+	{
+		return 0;
+	}
+	return key->second;
 }
 
 #ifdef STATISTICS_STEPS

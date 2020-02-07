@@ -20,6 +20,7 @@ private:
 
 	bool Active;
 	bool True;
+	bool Duplicate;
 
 	double * probabiltyPositive;
 protected:
@@ -36,6 +37,7 @@ public:
 
 	bool isActive() const;
 	bool isTrue() const;
+	bool isDuplicate(const ClauseState* clause);
 	unsigned int getCurrentSize() const;
 
 	const Clause * getClause() const;

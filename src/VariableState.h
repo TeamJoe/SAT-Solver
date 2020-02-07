@@ -5,9 +5,11 @@ class VariableState;
 
 #include <vector>
 #include <map>
+#include <unordered_map>
 
 #include "Variable.h"
 #include "SATState.h"
+#include "SplitState.h"
 
 #include "Constants.h"
 
@@ -30,8 +32,10 @@ private:
 	vector <unsigned int> * PositiveClauseSizes;
 
 #ifdef SIBLING_CALCULATIONS
-	map <int, int>* positiveSiblingCount;
-	map <int, int>* negativeSiblingCount;
+	// Could become vector that is 2*variable count
+	unordered_map <int, int>* positiveSiblingCount;
+	unordered_map <int, int>* negativeSiblingCount;
+	unordered_map <int, int>* siblingCount;
 #endif
 #ifdef STATISTICS_STEPS
 	double* score;
@@ -59,6 +63,7 @@ public:
 	bool isActive() const;
 	int getValue() const;
 	bool hasSolution() const;
+	unsigned int getSiblingCount(const VariableState* v) const;
 
 #ifdef STATISTICS_STEPS
 	//Statistics Functions
@@ -94,6 +99,7 @@ public:
 	unsigned int getLargestClauseCount() const;
 
 	friend SATState;
+	friend SplitState;
 };
 
 #endif

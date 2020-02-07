@@ -44,6 +44,7 @@ public:
 	unsigned long getIdentifier() const;
 	int GetVariable() const;
 	bool isValid() const;
+	unsigned int getSiblingCount(const Variable* variable) const;
 
 	//Operator Overloads
 	bool operator==(const Variable & variable) const;

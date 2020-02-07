@@ -14,6 +14,7 @@ ClauseState::ClauseState(SATState * sat, const Clause * clause)
 	this->clause = clause;
 	this->Active = true;
 	this->True = false;
+	this->Duplicate = false;
 
 	this->variables = new VariableState *[clause->_size];
 #ifdef STATISTICS_STEPS
@@ -75,6 +76,7 @@ ClauseState * ClauseState::copy(SATState * sat)
 	ClauseState * newClause = new ClauseState(sat, this->clause);
 	newClause->Active = this->Active;
 	newClause->True = this->True;
+	newClause->Duplicate = this->Duplicate;
 
 #ifdef STATISTICS_STEPS
 	for (unsigned int i = 0; i < STATISTICS_STEPS - 1; i++)
@@ -110,6 +112,29 @@ bool ClauseState::isTrue() const
 #endif
 	//assert(this->True == this->verifyTrue());
 	return this->True;
+}
+bool ClauseState::isDuplicate(const ClauseState* clause)
+{
+	unsigned int i = 0;
+	unsigned int j = 0;
+	while (i < this->clause->_size && j < clause->clause->_size)
+	{
+		if (!this->variables[i]->isActive())
+		{
+			i++;
+		}
+		else if (!clause->variables[j]->isActive())
+		{
+			j++;
+		}
+		else if (this->clause->clause[i] != clause->clause->clause[j])
+		{
+			return false;
+		}
+		i++;
+		j++;
+	}
+	return i == this->clause->_size && j == clause->clause->_size;
 }
 unsigned int ClauseState::getCurrentSize() const
 {

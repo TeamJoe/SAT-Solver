@@ -167,18 +167,16 @@ void OutputConsole(SAT* sat, const char* fileName, SATSolver* solver, Solution* 
 	if (output->solved == SolvedStates::NOT_COMPLETED || output->solved == SolvedStates::COMPLETED_UNKNOWN)
 	{
 		cout << "Unknown";
-		cout.flush();
 	}
 	else if (output->solved == SolvedStates::COMPLETED_NO_SOLUTION || output->solved == SolvedStates::NOT_COMPLETED_NO_SOLUTION)
 	{
 		cout << "False";
-		cout.flush();
 	}
 	else
 	{
 		cout << "True";
-		cout.flush();
 	}
+	cout.flush();
 }
 
 void OutputResult(SAT* sat, const char* fileName, SATSolver* solver, ofstream& out, ofstream& solutions, ofstream& winners, const int result)
