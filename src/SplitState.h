@@ -22,6 +22,7 @@ private:
 	list<unordered_map<unsigned int, VariableState*>*>* getTrees() const;
 public:
 	SplitState(SATState* root);
+	~SplitState();
 	list<SplitState*>* getSplit() const;
 };
 

@@ -1,61 +1,39 @@
+#include <list>
+
+#include "VariableState.h"
+#include "Constants.h"
+
+using namespace std;
+
+struct SortFunction;
+
+VariableSolutions StatisticSolver(const VariableState* v);
+VariableSolutions DefaultSolver(const VariableState* v);
+VariableSolutions FlipSatSolver(const VariableState* v);
+
+const VariableState* Sort(const VariableState* var1, const VariableState* var2, const list <SortFunction*>* SortFunctions);
+const VariableState* NextVariable(const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), SATSolverState* solverState);
+
+const char* getName(const unsigned int count);
+list <SortFunction*>* getSortFunctions(const unsigned int count);
+
+#ifndef SORTER_H
+#define SORTER_H
+
 #include "VariableState.h"
 #include "SAT.h"
 #include "Constants.h"
 
 using namespace std;
 
-VariableSolutions StatisticSolver(const VariableState* v);
-VariableSolutions DefaultSolver(const VariableState * v);
-VariableSolutions FlipSatSolver(const VariableState * v);
-
 //Naming Convention
 //Least - Smallest number (So LeastSmallest is not the largest of the smallest, it is the smallest of the smallest numbers)
 //Most - Largest number (So the opposite of least)
-enum class Sorter {
-	NoFunction = -1,
-	MostLargeUsed,
-	LeastLargeUsed,
-	MostSmallUsed,
-	LeastSmallUsed,
-	MostDifference,
-	LeastDifference,
-	MostSmallestClauseSize,
-	LeastSmallestClauseSize,
-	MostSmallestClauseCount,
-	LeastSmallestClauseCount,
-	MostLargestClauseSize,
-	LeastLargestClauseSize,
-	MostLargestClauseCount,
-	LeastLargestClauseCount,
-	MostSmallestNegativeClauseSize,
-	LeastSmallestNegativeClauseSize,
-	MostSmallestNegativeClauseCount,
-	LeastSmallestNegativeClauseCount,
-	MostLargestNegativeClauseSize,
-	LeastLargestNegativeClauseSize,
-	MostLargestNegativeClauseCount,
-	LeastLargestNegativeClauseCount,
-	MostSmallestPositiveClauseSize,
-	LeastSmallestPositiveClauseSize,
-	MostSmallestPositiveClauseCount,
-	LeastSmallestPositiveClauseCount,
-	MostLargestPositiveClauseSize,
-	LeastLargestPositiveClauseSize,
-	MostLargestPositiveClauseCount,
-	LeastLargestPositiveClauseCount,
-	MostTotalUsed,
-	LeastTotalUsed,
-	MostClauseCountSmallestToLargest,
-	MostClauseCountLargestToSmallest,
-	LeastClauseCountSmallestToLargest,
-	LeastClauseCountLargestToSmallest,
-	HasNoSolution,
-	HasRequired,
-	HasQuickPath,
-	MostAbsoluteScore,
-	LeastAbsoluteScore,
-	MostPercent1Score,
-	LeastPercent1Score
+
+struct SortFunction
+{
+	bool (*Eqaulity)(const VariableState*, const VariableState*);
+	const VariableState* (*Sort)(const VariableState*, const VariableState*);
 };
 
-SortFunction* getSortFunction(Sorter sorter);
+#endif

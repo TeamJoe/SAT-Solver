@@ -425,7 +425,6 @@ void SATState::verify() const
 
 const map <unsigned int, const VariableState *> * SATState::getVariableMap() const
 {
-	
 	return (map <unsigned int, const VariableState *> *)this->variables;
 }
 const map <unsigned int, const ClauseState *> * SATState::getClauseMap() const

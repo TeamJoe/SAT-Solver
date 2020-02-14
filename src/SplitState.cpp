@@ -8,12 +8,11 @@ SplitState::SplitState(SATState* root)
 	this->_root = root;
 	this->_parent = NULL;
 	this->variables = new unordered_map<unsigned int, VariableState*>(root->getVariableMap()->size() * 2);
-	for (map<unsigned int, const VariableState*>::const_iterator iter = root->getVariableMap()->cbegin(); iter != root->getVariableMap()->cend(); iter++)
+	for (map<unsigned int, VariableState*>::const_iterator iter = root->variables->cbegin(); iter != root->variables->cend(); iter++)
 	{
 		this->variables->insert_or_assign(iter->second->getVariable()->GetVariable(), iter->second);
 	}
 }
-
 
 SplitState::SplitState(SATState* root, const SplitState* _parent, unordered_map<unsigned int, VariableState*>* variables)
 {
@@ -67,7 +66,7 @@ list<unordered_map<unsigned int, VariableState*>*>* SplitState::getTrees() const
 			firstMatch->insert_or_assign(iter->first, iter->second);
 			for (unordered_map <int, int>::const_iterator copyIter = iter->second->siblingCount->cbegin(); copyIter != iter->second->siblingCount->cend(); copyIter++)
 			{
-				firstMatch->insert_or_assign(copyIter->first, this->_root->getVariableMap()->find(copyIter->first)->second);
+				firstMatch->insert_or_assign(copyIter->first, this->_root->variables->find(copyIter->first)->second);
 			}
 		}
 	}

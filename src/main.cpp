@@ -99,4 +99,5 @@ int main(int argc, char * argv[])
 	system("pause");
 
 	_CrtDumpMemoryLeaks();
+	system("pause");
 }

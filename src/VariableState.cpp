@@ -147,7 +147,6 @@ VariableState::VariableState(SATState * sat, const Variable * v)
 		unordered_map <int, int>::iterator key = this->siblingCount->find(iter->first < 0 ? -1 * iter->first : iter->first);
 		if (key == this->siblingCount->cend())
 		{
-
 			this->siblingCount->insert_or_assign(iter->first < 0 ? -1 * iter->first : iter->first, iter->second->size());
 		}
 		else

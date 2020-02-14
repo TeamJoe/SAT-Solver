@@ -1,5 +1,5 @@
 class SATState;
-struct SortFunction;
+class SplitState;
 
 #ifndef SAT_STATE_H
 #define SAT_STATE_H
@@ -18,11 +18,6 @@ struct SortFunction;
 
 using namespace std;
 
-struct SortFunction
-{
-	bool (*Eqaulity)(const VariableState *, const VariableState *);
-	const VariableState * (*Sort)(const VariableState *, const VariableState *);
-};
 
 class SATState
 {
@@ -78,6 +73,7 @@ public:
 
 	friend VariableState;
 	friend ClauseState;
+	friend SplitState;
 };
 
 #endif

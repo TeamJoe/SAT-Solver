@@ -506,10 +506,57 @@ VariableSolutions FlipSatSolver(const VariableState * v)
 //******************************
 //------------------------------
 //
-// Sorting Function 
+// Sort/Equality Function
 //
 //------------------------------
 //******************************
+
+enum class Sorter {
+	NoFunction = -1,
+	MostLargeUsed,
+	LeastLargeUsed,
+	MostSmallUsed,
+	LeastSmallUsed,
+	MostDifference,
+	LeastDifference,
+	MostSmallestClauseSize,
+	LeastSmallestClauseSize,
+	MostSmallestClauseCount,
+	LeastSmallestClauseCount,
+	MostLargestClauseSize,
+	LeastLargestClauseSize,
+	MostLargestClauseCount,
+	LeastLargestClauseCount,
+	MostSmallestNegativeClauseSize,
+	LeastSmallestNegativeClauseSize,
+	MostSmallestNegativeClauseCount,
+	LeastSmallestNegativeClauseCount,
+	MostLargestNegativeClauseSize,
+	LeastLargestNegativeClauseSize,
+	MostLargestNegativeClauseCount,
+	LeastLargestNegativeClauseCount,
+	MostSmallestPositiveClauseSize,
+	LeastSmallestPositiveClauseSize,
+	MostSmallestPositiveClauseCount,
+	LeastSmallestPositiveClauseCount,
+	MostLargestPositiveClauseSize,
+	LeastLargestPositiveClauseSize,
+	MostLargestPositiveClauseCount,
+	LeastLargestPositiveClauseCount,
+	MostTotalUsed,
+	LeastTotalUsed,
+	MostClauseCountSmallestToLargest,
+	MostClauseCountLargestToSmallest,
+	LeastClauseCountSmallestToLargest,
+	LeastClauseCountLargestToSmallest,
+	HasNoSolution,
+	HasRequired,
+	HasQuickPath,
+	MostAbsoluteScore,
+	LeastAbsoluteScore,
+	MostPercent1Score,
+	LeastPercent1Score
+};
 
 static SortFunction MostLargeUsed_Functions =						{ LargeUsed, MostLargeUsed };
 static SortFunction LeastLargeUsed_Functions =						{ LargeUsed, LeastLargeUsed };
@@ -613,4 +660,282 @@ SortFunction* getSortFunction(Sorter sorter)
 			assert(false);
 			return NULL;
 	}
+}
+
+//******************************
+//------------------------------
+//
+// Method Functions
+//
+//------------------------------
+//******************************
+
+class Methods
+{
+public:
+	const char* name;
+	Sorter* sorters;
+
+	~Methods()
+	{
+		delete[] sorters;
+	}
+
+	Methods(const char* name, Sorter* sorters) {
+		this->name = name;
+		this->sorters = sorters;
+	}
+};
+
+list<Methods*>* GetSortList()
+{
+	list<Methods*>* sortList = NULL;
+
+	//******************************
+	//------------------------------
+	//
+	// Debug Set
+	//
+	//------------------------------
+	//******************************
+#ifdef _DEBUG
+	sortList = new list<Methods*>();
+	/*
+	sortList->push_back(new Methods("DebugA1", new Sorter[5]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostClauseCountSmallestToLargest, Sorter::MostDifference, Sorter::NoFunction }));
+	*/
+	sortList->push_back(new Methods("DebugA2", new Sorter[10]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::MostLargeUsed, Sorter::NoFunction }));
+#else
+	//******************************
+	//------------------------------
+	//
+	// Orginal Set
+	//
+	//------------------------------
+	//******************************
+#ifdef ORGINAL_SET
+	sortList = new list<Methods*>();
+	sortList->push_back(new Methods("", new Sorter[3]{ Sorter::MostDifference, Sorter::MostLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[3]{ Sorter::MostDifference, Sorter::LeastLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[3]{ Sorter::LeastDifference, Sorter::MostLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[3]{ Sorter::LeastDifference, Sorter::LeastLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[3]{ Sorter::MostLargeUsed, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[3]{ Sorter::LeastLargeUsed, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[3]{ Sorter::MostLargeUsed, Sorter::LeastDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[3]{ Sorter::LeastLargeUsed, Sorter::LeastDifference, Sorter::NoFunction }));
+#endif
+	//******************************
+	//------------------------------
+	//
+	// Secondary Set
+	//
+	//------------------------------
+	//******************************
+#ifdef SECONDARY_SET
+	sortList = new list<Methods*>();
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::MostDifference, Sorter::MostLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::MostDifference, Sorter::LeastLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::LeastDifference, Sorter::MostLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::LeastDifference, Sorter::LeastLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::MostLargeUsed, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::LeastLargeUsed, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::MostLargeUsed, Sorter::LeastDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::LeastLargeUsed, Sorter::LeastDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::MostDifference, Sorter::MostLargeUsed, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::MostDifference, Sorter::LeastLargeUsed, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::LeastDifference, Sorter::MostLargeUsed, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::LeastDifference, Sorter::LeastLargeUsed, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::MostLargeUsed, Sorter::MostDifference, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::LeastLargeUsed, Sorter::MostDifference, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::MostLargeUsed, Sorter::LeastDifference, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[7]{ Sorter::LeastLargeUsed, Sorter::LeastDifference, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::MostLargestClauseCount, Sorter::NoFunction }));
+#endif
+	//******************************
+	//------------------------------
+	//
+	// Third Set
+	//
+	//------------------------------
+	//******************************
+#ifdef THIRD_SET
+	sortList = new list<Methods*>();
+	sortList->push_back(new Methods("", new Sorter[8]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::MostLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[8]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::LeastLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[8]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::MostLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[8]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::LeastLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[8]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastLargeUsed, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[8]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::LeastDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("", new Sorter[8]{ Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargeUsed, Sorter::LeastDifference, Sorter::NoFunction }));
+#endif
+	//******************************
+	//------------------------------
+	//
+	// Fourth Set
+	//
+	//------------------------------
+	//******************************
+#ifdef FOURTH_SET
+	sortList = new list<Methods*>();
+	sortList->push_back(new Methods("SmallToLarge-1", new Sorter[5]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostClauseCountSmallestToLargest, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("SmallToLarge-2", new Sorter[5]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostClauseCountSmallestToLargest, Sorter::LeastDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("LargeToSmall-1", new Sorter[6]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::HasQuickPath, Sorter::MostClauseCountLargestToSmallest, Sorter::MostDifference, Sorter::NoFunction }));
+	/*
+	sortList->push_back(new Methods("LargeToSmall-2", new Sorter[5]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostClauseCountLargestToSmallest, Sorter::LeastDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("SmallToLarge-Odd-1", new Sorter[5]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::LeastClauseCountSmallestToLargest, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("SmallToLarge-Odd-2", new Sorter[5]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::LeastClauseCountSmallestToLargest, Sorter::LeastDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("LargeToSmall-Odd-1", new Sorter[5]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::LeastClauseCountLargestToSmallest, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("LargeToSmall-Odd-2", new Sorter[5]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::LeastClauseCountLargestToSmallest, Sorter::LeastDifference, Sorter::NoFunction }));
+	*/
+	sortList->push_back(new Methods("ClauseSize-1", new Sorter[10]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::MostLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ClauseSize-2", new Sorter[10]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::LeastLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ClauseSize-3", new Sorter[10]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::MostLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ClauseSize-4", new Sorter[10]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::LeastLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ClauseSize-5", new Sorter[10]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ClauseSize-6", new Sorter[10]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastLargeUsed, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ClauseSize-7", new Sorter[10]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::LeastDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ClauseSize-8", new Sorter[10]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargeUsed, Sorter::LeastDifference, Sorter::NoFunction }));
+
+
+	// TODO: Investigate quick path function
+	//		Should probably have a cutoff, so it only happens if it affects a certain number of values?
+	//		Or if it will actually force another variable to take a value
+	//		Check Negative Clauses Size if Decider says variable is negative
+	//		Check Positive Clause Size if the Decider says variable is positive
+
+#ifdef STATISTICS_STEPS
+	sortList->push_back(new Methods("Score-1", new Sorter[6]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostPercent1Score, Sorter::MostClauseCountSmallestToLargest, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("Score-2", new Sorter[6]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostPercent1Score, Sorter::MostClauseCountSmallestToLargest, Sorter::LeastDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("Score-3", new Sorter[6]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostPercent1Score, Sorter::MostClauseCountLargestToSmallest, Sorter::MostDifference, Sorter::NoFunction }));
+
+	sortList->push_back(new Methods("Score-4", new Sorter[11]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::MostLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("Score-5", new Sorter[11]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::LeastLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("Score-6", new Sorter[11]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::MostLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("Score-7", new Sorter[11]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::LeastLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("Score-8", new Sorter[11]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("Score-9", new Sorter[11]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastLargeUsed, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("Score-10", new Sorter[11]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::LeastDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("Score-11", new Sorter[11]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargeUsed, Sorter::LeastDifference, Sorter::NoFunction }));
+
+	sortList->push_back(new Methods("ScoreQuick-1", new Sorter[7]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::HasQuickPath, Sorter::MostPercent1Score, Sorter::MostClauseCountSmallestToLargest, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ScoreQuick-2", new Sorter[7]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::HasQuickPath, Sorter::MostPercent1Score, Sorter::MostClauseCountSmallestToLargest, Sorter::LeastDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ScoreQuick-3", new Sorter[7]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::HasQuickPath, Sorter::MostPercent1Score, Sorter::MostClauseCountLargestToSmallest, Sorter::MostDifference, Sorter::NoFunction }));
+
+	sortList->push_back(new Methods("ScoreQuick-4", new Sorter[12]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::HasQuickPath, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::MostLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ScoreQuick-5", new Sorter[12]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::HasQuickPath, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostDifference, Sorter::LeastLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ScoreQuick-6", new Sorter[12]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::HasQuickPath, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::MostLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ScoreQuick-7", new Sorter[12]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::HasQuickPath, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastDifference, Sorter::LeastLargeUsed, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ScoreQuick-8", new Sorter[12]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::HasQuickPath, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ScoreQuick-9", new Sorter[12]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::HasQuickPath, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::LeastLargeUsed, Sorter::MostDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ScoreQuick-10", new Sorter[12]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::HasQuickPath, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostLargeUsed, Sorter::LeastDifference, Sorter::NoFunction }));
+	sortList->push_back(new Methods("ScoreQuick-11", new Sorter[12]{ Sorter::HasNoSolution, Sorter::HasRequired, Sorter::HasQuickPath, Sorter::MostPercent1Score, Sorter::LeastSmallestClauseSize, Sorter::MostSmallestClauseCount, Sorter::LeastLargestClauseSize, Sorter::LeastLargestClauseCount, Sorter::MostTotalUsed, Sorter::LeastLargeUsed, Sorter::LeastDifference, Sorter::NoFunction }));
+#endif
+#endif
+
+
+#endif
+	return sortList;
+}
+
+Methods* getMethod(const unsigned int count)
+{
+	list<Methods*>* SortFunctions = GetSortList();
+	Methods* ret = NULL;
+
+	unsigned int i = 0;
+	for (list <Methods*>::const_iterator iter = SortFunctions->cbegin(); iter != SortFunctions->cend(); iter++)
+	{
+		if (i == count)
+		{
+			assert(ret == NULL);
+			ret = (*iter);
+		}
+		else
+		{
+			delete (*iter);
+		}
+		i++;
+	}
+	delete SortFunctions;
+	return ret;
+}
+
+const char* getName(const unsigned int count)
+{
+	Methods* method = getMethod(count);
+	assert(method != NULL);
+	const char* ret = method->name;
+	delete method;
+	return ret;
+}
+
+//******************************
+//------------------------------
+//
+// Determining Functions
+//
+//------------------------------
+//******************************
+const VariableState* Sort(const VariableState* var1, const VariableState* var2, const list <SortFunction*>* SortFunctions)
+{
+	list <SortFunction*>::const_iterator iter = SortFunctions->cbegin();
+	for (; iter != SortFunctions->cend(); iter++)
+	{
+		assert((*iter) != NULL);
+		if (!((*iter)->Eqaulity)(var1, var2))
+		{
+			return ((*iter)->Sort)(var1, var2);
+		}
+	}
+	return NULL;
+}
+
+const VariableState* NextVariable(const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), SATSolverState* solverState)
+{
+	const map <unsigned int, const VariableState*>* variables = solverState->getCurrentVariables();
+	const VariableState* val = variables->cbegin()->second;
+
+	VariableSolutions deciderInt = Decider(val);
+	if (deciderInt == VariableSolutions::MUST_NEGATIVE || deciderInt == VariableSolutions::MUST_POSITIVE || deciderInt == VariableSolutions::VARIABLE_NO_SOLUTION) {
+		return val;
+	}
+
+	map <unsigned int, const VariableState*>::const_iterator iter = variables->cbegin();
+	map <unsigned int, const VariableState*>::const_iterator end = variables->cend();
+	iter++;
+	for (; iter != end; iter++)
+	{
+		const VariableState* val2 = iter->second;
+		assert(val2->isActive());
+
+		VariableSolutions deciderInt2 = Decider(val2);
+		if (deciderInt2 == VariableSolutions::MUST_NEGATIVE || deciderInt2 == VariableSolutions::MUST_POSITIVE || deciderInt2 == VariableSolutions::VARIABLE_NO_SOLUTION) {
+			return val2;
+		}
+
+		const VariableState* newVal = Sort(val, val2, SortFunctions);
+		if (newVal != NULL) {
+			val = newVal;
+			deciderInt = deciderInt2;
+		}
+		else if (deciderInt2 != VariableSolutions::VARIABLE_UNKNOWN) {
+			val = val2;
+			deciderInt = deciderInt2;
+		}
+	}
+	return val;
+}
+
+list <SortFunction*>* getSortFunctions(const unsigned int count)
+{
+	Methods* method = getMethod(count);
+	assert(method != NULL);
+	list <SortFunction*>* ret = new list <SortFunction*>();
+	for (unsigned int y = 0; method->sorters[y] != Sorter::NoFunction; y++)
+	{
+		SortFunction* sorter = getSortFunction(method->sorters[y]);
+		if (sorter != NULL) {
+			ret->push_back(sorter);
+		}
+	}
+	delete method;
+	return ret;
 }
