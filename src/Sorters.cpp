@@ -888,37 +888,40 @@ const VariableState* Sort(const VariableState* var1, const VariableState* var2, 
 	return NULL;
 }
 
-const VariableState* NextVariable(const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), SATSolverState* solverState)
+const VariableState* NextVariable(const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const map <unsigned int, const VariableState*>* variables)
 {
-	const map <unsigned int, const VariableState*>* variables = solverState->getCurrentVariables();
-	const VariableState* val = variables->cbegin()->second;
+	map <unsigned int, const VariableState*>::const_iterator iter = variables->cbegin();
+	while (!iter->second->isActive() && iter != variables->cend()) {
+		iter++;
+	}
+	assert(iter != variables->cend());
+	const VariableState* val = iter->second;
 
 	VariableSolutions deciderInt = Decider(val);
 	if (deciderInt == VariableSolutions::MUST_NEGATIVE || deciderInt == VariableSolutions::MUST_POSITIVE || deciderInt == VariableSolutions::VARIABLE_NO_SOLUTION) {
 		return val;
 	}
 
-	map <unsigned int, const VariableState*>::const_iterator iter = variables->cbegin();
 	map <unsigned int, const VariableState*>::const_iterator end = variables->cend();
 	iter++;
 	for (; iter != end; iter++)
 	{
 		const VariableState* val2 = iter->second;
-		assert(val2->isActive());
+		if (val2->isActive()) {
+			VariableSolutions deciderInt2 = Decider(val2);
+			if (deciderInt2 == VariableSolutions::MUST_NEGATIVE || deciderInt2 == VariableSolutions::MUST_POSITIVE || deciderInt2 == VariableSolutions::VARIABLE_NO_SOLUTION) {
+				return val2;
+			}
 
-		VariableSolutions deciderInt2 = Decider(val2);
-		if (deciderInt2 == VariableSolutions::MUST_NEGATIVE || deciderInt2 == VariableSolutions::MUST_POSITIVE || deciderInt2 == VariableSolutions::VARIABLE_NO_SOLUTION) {
-			return val2;
-		}
-
-		const VariableState* newVal = Sort(val, val2, SortFunctions);
-		if (newVal != NULL) {
-			val = newVal;
-			deciderInt = deciderInt2;
-		}
-		else if (deciderInt2 != VariableSolutions::VARIABLE_UNKNOWN) {
-			val = val2;
-			deciderInt = deciderInt2;
+			const VariableState* newVal = Sort(val, val2, SortFunctions);
+			if (newVal != NULL) {
+				val = newVal;
+				deciderInt = deciderInt2;
+			}
+			else if (deciderInt2 != VariableSolutions::VARIABLE_UNKNOWN) {
+				val = val2;
+				deciderInt = deciderInt2;
+			}
 		}
 	}
 	return val;

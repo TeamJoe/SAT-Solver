@@ -14,16 +14,23 @@ class SplitState
 {
 private:
 	unordered_map <unsigned int, VariableState*>* variables;
-	SATState* _root;
+	const SATState* _root;
 	const SplitState* _parent;
 
-	SplitState(SATState* root, const SplitState* _parent, unordered_map<unsigned int, VariableState*>* variables);
+	SplitState(const SATState* root, const SplitState* _parent, unordered_map<unsigned int, VariableState*>* variables);
 
 	list<unordered_map<unsigned int, VariableState*>*>* getTrees() const;
 public:
-	SplitState(SATState* root);
+	SplitState(const SATState* root);
 	~SplitState();
 	list<SplitState*>* getSplit() const;
+
+	const map <unsigned int, const VariableState*>* getVariableMap() const;
+
+	unsigned int getRemainingClauseCount() const;
+	unsigned int getRemainingVariableCount() const;
+	bool hasSolution() const;
+	bool canSolve() const;
 };
 
 #endif

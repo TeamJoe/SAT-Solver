@@ -99,9 +99,13 @@ Ideas:
 --Caching--
 * What is the same cached value?
 ** Same clause remaining and same variables remaining
-** Same clause remaining and a subset of variables remaining
-** Superset clause remaining and same variables remaining
-** Superset clause remaining and subset of variables remaining
+** Same clause remaining and a subset of variables remaining (when has solution)
+** Superset clause remaining and same variables remaining (when has solution)
+** Superset clause remaining and subset of variables remaining (when has solution)
+** Same clause remaining and a superset of variables remaining (when has no solution)
+** Subset clause remaining and same variables remaining (when has no solution)
+** Subset clause remaining and superset of variables remaining (when has no solution)
+** Better way to look at it, when subset graph has no solutions or when superset graph has solutions
 * Store Least clauses with most variables, and look for that cache element?
 ** How would I easily look that up?
 * Is there a way to cache structure without caching values?

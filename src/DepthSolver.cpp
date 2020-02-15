@@ -49,6 +49,7 @@ void * createDepthSatVariable(const SAT * sat, const unsigned int currentCount, 
 
 
 SolverState _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSolverState * solverState, const list <SortFunction *> * SortFunctions, VariableSolutions (Decider)(const VariableState *), const unsigned long long maxDepth);
+void _setVariableDepthSat(SATSolverState* solverState, const VariableState* var1, bool solution);
 ReturnValue * solveDepthSat(const SATSolver * solver, void * variables)
 {
 	DepthSatVariables * depthSatVariables = (DepthSatVariables *)variables;
@@ -121,57 +122,35 @@ SolverState _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSol
 {
 	//If all variable have a solution
 	const SATState * satState = solverState->getState();
-	if(satState->getRemainingVariableCount() == 0)
-	{
-		//If the solution is the opposite of what we currently have
-		if (satState->getRemainingClauseCount() == 0)
-		{
-			try
-			{
-				value->solutions->push_back(satState->getState());
-			}
-			catch (std::bad_alloc& ba)
-			{
-				return SolverState::UNKNOWN_ERROR;
-			}
-#ifdef _DEBUG
-			for (list<const int *>::const_iterator iter = value->solutions->cbegin(); iter != value->solutions->cend(); iter++)
-			{
-				assert(satState->getSAT()->Evaluate(*iter));
-			}
-#endif
-			return SolverState::SOLUTION_FOUND;
-		}
-		if (solver->isTerminatingAllThreads) {
-			return SolverState::TERMINATE_EARLY;
-		}
-		return SolverState::NO_SOLUTION_FOUND;
-	}
-
-	//exclude whole chains where every branch evaluates to true
 	if (satState->getRemainingClauseCount() == 0)
 	{
 		try
 		{
 			value->solutions->push_back(satState->getState());
 		}
-		catch (std::bad_alloc& ba)
+		catch (bad_alloc & ba)
 		{
+			cerr << ba.what() << endl;
 			return SolverState::UNKNOWN_ERROR;
 		}
 #ifdef _DEBUG
-		for (list<const int *>::const_iterator iter = value->solutions->cbegin(); iter != value->solutions->cend(); iter++)
+		for (list<const int*>::const_iterator iter = value->solutions->cbegin(); iter != value->solutions->cend(); iter++)
 		{
 			assert(satState->getSAT()->Evaluate(*iter));
 		}
 #endif
-		if (solver->isTerminatingAllThreads) {
-			return SolverState::TERMINATE_EARLY;
-		}
 		return SolverState::SOLUTION_FOUND;
 	}
-
-	if (0 < maxDepth && maxDepth < satState->getVariableAttempts())
+	else if(satState->getRemainingVariableCount() == 0)
+	{
+		//If the solution is the opposite of what we currently have
+		return SolverState::NO_SOLUTION_FOUND;
+	}
+	else if (solver->isTerminatingAllThreads)
+	{
+		return SolverState::TERMINATE_EARLY;
+	}
+	else if (0 < maxDepth && maxDepth < satState->getVariableAttempts())
 	{
 		return SolverState::MAX_DEPTH_REACHED;
 	}
@@ -184,7 +163,7 @@ SolverState _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSol
 		return  SolverState::NO_SOLUTION_FOUND;
 	}
 
-	const VariableState * var1 = NextVariable(SortFunctions, Decider, solverState);
+	const VariableState * var1 = NextVariable(SortFunctions, Decider, solverState->getCurrentVariables());
 	assert(var1 != NULL);
 
 	//Get best variable
@@ -192,27 +171,7 @@ SolverState _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSol
 	assert(solution != VariableSolutions::VARIABLE_NO_SOLUTION);
 
 	//Check if chain has a solution
-	solverState->setVariable(var1->getVariable(), solution == VariableSolutions::VARIABLE_POSITIVE || solution == VariableSolutions::MUST_POSITIVE);
-
-#ifdef OUTPUT_INTERMEDIATE_SOLUTION
-	cout << var1->getValue() << "(" << solution << "): ";
-	const list <const list <int> *> * currentClauses = &satState->getRemainingClauses();
-	for(list <const list <int> *>::const_iterator iter = currentClauses->cbegin(); iter != currentClauses->cend(); iter++)
-	{
-		cout << "(";
-		for(list <int>::const_iterator iter2 = (*(iter))->cbegin(); iter2 != (*(iter))->cend(); iter2++)
-		{
-			if (iter2 != (*(iter))->cbegin()) {
-				cout << ",";
-			}
-			cout << (*(iter2));
-		}
-		cout << ")";
-		delete (*(iter));
-	}
-	cout << endl;
-	delete currentClauses;
-#endif
+	_setVariableDepthSat(solverState, var1, solution == VariableSolutions::VARIABLE_POSITIVE || solution == VariableSolutions::MUST_POSITIVE);
 
 	assert(var1->getValue() != 0);
 	assert((solution == VariableSolutions::VARIABLE_POSITIVE || solution == VariableSolutions::MUST_POSITIVE) && var1->getValue() > 0
@@ -228,40 +187,12 @@ SolverState _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSol
 #endif
 		return i;
 	}
-
-	if (0 < maxDepth && maxDepth < satState->getVariableAttempts())
-	{
-		return SolverState::MAX_DEPTH_REACHED;
-	}
-	else if (solver->isTerminatingAllThreads)
-	{
-		return SolverState::TERMINATE_EARLY;
-	}
+	assert(!(0 < maxDepth && maxDepth < satState->getVariableAttempts()));
 
 	//Check if the opposite solution is plausible
 	if(solution != VariableSolutions::MUST_POSITIVE && solution != VariableSolutions::MUST_NEGATIVE)
 	{
-		solverState->setVariable(var1->getVariable(), !(solution == VariableSolutions::VARIABLE_POSITIVE || solution == VariableSolutions::MUST_POSITIVE));
-
-#ifdef OUTPUT_INTERMEDIATE_SOLUTION
-		cout << var1->getValue() << "(" << solution << "): ";
-		const list <const list <int> *> * currentClauses = &satState->getRemainingClauses();
-		for(list <const list <int> *>::const_iterator iter = currentClauses->cbegin(); iter != currentClauses->cend(); iter++)
-		{
-			cout << "(";
-			for(list <int>::const_iterator iter2 = (*(iter))->cbegin(); iter2 != (*(iter))->cend(); iter2++)
-			{
-				if (iter2 != (*(iter))->cbegin()) {
-					cout << ",";
-				}
-				cout << (*(iter2));
-			}
-			cout << ")";
-			delete (*(iter));
-		}
-		cout << endl;
-		delete currentClauses;
-#endif
+		_setVariableDepthSat(solverState, var1, !(solution == VariableSolutions::VARIABLE_POSITIVE || solution == VariableSolutions::MUST_POSITIVE));
 
 		assert(var1->getValue() != 0);
 		assert((solution == VariableSolutions::VARIABLE_POSITIVE || solution == VariableSolutions::MUST_POSITIVE) && var1->getValue() < 0
@@ -277,10 +208,36 @@ SolverState _solveDepthSat(ReturnValue * value, const SATSolver * solver, SATSol
 #endif
 			return i;
 		}
+		assert(!(0 < maxDepth && maxDepth < satState->getVariableAttempts()));
 	}
 
 	//no solution found so step back and continue search
 	solverState->unsetVariable(var1->getVariable());
 	
 	return SolverState::NO_SOLUTION_FOUND;
+}
+
+void _setVariableDepthSat(SATSolverState* solverState, const VariableState* var1, bool solution)
+{
+	solverState->setVariable(var1->getVariable(), solution);
+
+#ifdef OUTPUT_INTERMEDIATE_SOLUTION
+	cout << var1->getValue() << "(" << solution << "): ";
+	const list <const list <int>*>* currentClauses = &satState->getRemainingClauses();
+	for (list <const list <int>*>::const_iterator iter = currentClauses->cbegin(); iter != currentClauses->cend(); iter++)
+	{
+		cout << "(";
+		for (list <int>::const_iterator iter2 = (*(iter))->cbegin(); iter2 != (*(iter))->cend(); iter2++)
+		{
+			if (iter2 != (*(iter))->cbegin()) {
+				cout << ",";
+			}
+			cout << (*(iter2));
+		}
+		cout << ")";
+		delete (*(iter));
+	}
+	cout << endl;
+	delete currentClauses;
+#endif
 }

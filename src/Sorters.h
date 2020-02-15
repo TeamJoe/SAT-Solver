@@ -1,4 +1,5 @@
 #include <list>
+#include <map>
 
 #include "VariableState.h"
 #include "Constants.h"
@@ -12,7 +13,7 @@ VariableSolutions DefaultSolver(const VariableState* v);
 VariableSolutions FlipSatSolver(const VariableState* v);
 
 const VariableState* Sort(const VariableState* var1, const VariableState* var2, const list <SortFunction*>* SortFunctions);
-const VariableState* NextVariable(const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), SATSolverState* solverState);
+const VariableState* NextVariable(const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const map <unsigned int, const VariableState*>* variables);
 
 const char* getName(const unsigned int count);
 list <SortFunction*>* getSortFunctions(const unsigned int count);

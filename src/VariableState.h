@@ -1,4 +1,5 @@
 class VariableState;
+class SplitState;
 
 #ifndef VARIABLE_STATE_H
 #define VARIABLE_STATE_H
@@ -9,7 +10,6 @@ class VariableState;
 
 #include "Variable.h"
 #include "SATState.h"
-#include "SplitState.h"
 
 #include "Constants.h"
 

@@ -1,4 +1,5 @@
 class ClauseState;
+class SplitState;
 
 #ifndef CLAUSE_STATE_H
 #define CLAUSE_STATE_H
@@ -48,6 +49,7 @@ public:
 #endif
 
 	friend SATState;
+	friend SplitState;
 };
 
 #endif

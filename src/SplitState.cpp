@@ -2,8 +2,9 @@
 
 using namespace std;
 
+#include <assert.h>
 
-SplitState::SplitState(SATState* root)
+SplitState::SplitState(const SATState* root)
 {
 	this->_root = root;
 	this->_parent = NULL;
@@ -14,7 +15,7 @@ SplitState::SplitState(SATState* root)
 	}
 }
 
-SplitState::SplitState(SATState* root, const SplitState* _parent, unordered_map<unsigned int, VariableState*>* variables)
+SplitState::SplitState(const SATState* root, const SplitState* _parent, unordered_map<unsigned int, VariableState*>* variables)
 {
 	this->_root = root;
 	this->_parent = _parent;
@@ -90,4 +91,41 @@ list<SplitState*>* SplitState::getSplit() const
 		delete trees;
 		return ret;
 	}
+}
+const map <unsigned int, const VariableState*>* SplitState::getVariableMap() const
+{
+	return (map <unsigned int, const VariableState*>*)this->variables;
+}
+unsigned int SplitState::getRemainingClauseCount() const
+{
+	unsigned int i = 0;
+	for (unordered_map <unsigned int, ClauseState*>::const_iterator iter = this->_root->activeClauses->cbegin(); iter != this->_root->activeClauses->cend(); iter++)
+	{
+		assert(iter->second->isActive());
+		for (unsigned int i = 0; i < iter->second->clause->Size(); i++) {
+			if (this->variables->find(iter->second->variables[i]->variable->GetVariable()) != this->variables->cend()) {
+				i++;
+			}
+		}
+	}
+	return i;
+}
+unsigned int SplitState::getRemainingVariableCount() const
+{
+	unsigned int i = 0;
+	for (unordered_map <unsigned int, VariableState*>::const_iterator iter = this->variables->cbegin(); iter != this->variables->cend(); iter++)
+	{
+		if (iter->second->isActive()) {
+			i++;
+		}
+	}
+	return i;
+}
+bool SplitState::hasSolution() const
+{
+	return this->getRemainingClauseCount() == 0;
+}
+bool SplitState::canSolve() const
+{
+	return this->_root->canSolve();
 }

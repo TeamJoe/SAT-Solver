@@ -1,2 +1,1 @@
 Count,Expected Results,Variable Count,Clause Count,File Location,Result,Solution Count,Compile Time,Analyze Time,Solve Time,Output Time,Clean Time,Total Time
-1,1,20,90,data\uf20\uf20-01.cnf,(TRUE),1,0.0335113,2.3e-06,31.9033,0.0003322,0.0011329,32.0267

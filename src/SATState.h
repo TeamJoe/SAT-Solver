@@ -18,7 +18,6 @@ class SplitState;
 
 using namespace std;
 
-
 class SATState
 {
 private:
