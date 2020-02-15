@@ -21,6 +21,9 @@
 #ifdef DEPTH_SAT
 #include "DepthSolver.h"
 #endif
+#ifdef SPLIT_SAT
+#include "SplitSolver.h"
+#endif
 #ifdef BOTTOM_ANALYZE_SAT
 #include "BottomSolver.h"
 #endif

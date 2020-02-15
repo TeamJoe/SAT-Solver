@@ -67,7 +67,8 @@ list<unordered_map<unsigned int, VariableState*>*>* SplitState::getTrees() const
 			firstMatch->insert_or_assign(iter->first, iter->second);
 			for (unordered_map <int, int>::const_iterator copyIter = iter->second->siblingCount->cbegin(); copyIter != iter->second->siblingCount->cend(); copyIter++)
 			{
-				firstMatch->insert_or_assign(copyIter->first, this->_root->variables->find(copyIter->first)->second);
+				assert(this->variables->find(copyIter->first) != this->variables->cend());
+				firstMatch->insert_or_assign(copyIter->first, this->variables->find(copyIter->first)->second);
 			}
 		}
 	}
@@ -92,34 +93,34 @@ list<SplitState*>* SplitState::getSplit() const
 		return ret;
 	}
 }
-const map <unsigned int, const VariableState*>* SplitState::getVariableMap() const
+const unordered_map <unsigned int, const VariableState*>* SplitState::getVariableMap() const
 {
-	return (map <unsigned int, const VariableState*>*)this->variables;
+	return (unordered_map <unsigned int, const VariableState*>*)this->variables;
 }
 unsigned int SplitState::getRemainingClauseCount() const
 {
-	unsigned int i = 0;
+	unsigned int count = 0;
 	for (unordered_map <unsigned int, ClauseState*>::const_iterator iter = this->_root->activeClauses->cbegin(); iter != this->_root->activeClauses->cend(); iter++)
 	{
 		assert(iter->second->isActive());
 		for (unsigned int i = 0; i < iter->second->clause->Size(); i++) {
 			if (this->variables->find(iter->second->variables[i]->variable->GetVariable()) != this->variables->cend()) {
-				i++;
+				count++;
 			}
 		}
 	}
-	return i;
+	return count;
 }
 unsigned int SplitState::getRemainingVariableCount() const
 {
-	unsigned int i = 0;
+	unsigned int count = 0;
 	for (unordered_map <unsigned int, VariableState*>::const_iterator iter = this->variables->cbegin(); iter != this->variables->cend(); iter++)
 	{
 		if (iter->second->isActive()) {
-			i++;
+			count++;
 		}
 	}
-	return i;
+	return count;
 }
 bool SplitState::hasSolution() const
 {

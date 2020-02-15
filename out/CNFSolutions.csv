@@ -1,1 +1,6 @@
 Count,Expected Result,Final State,Variable Count,Clause Count,File Location,Result,Solution Count,Solutions |(Count)(Results)|
+1,1,-2,20,90,data\uf20\uf20-01.cnf,(FALSE),0,
+2,1,-2,20,91,data\uf20\uf20-02.cnf,(FALSE),0,
+3,1,-2,20,91,data\uf20\uf20-03.cnf,(FALSE),0,
+4,1,-2,20,91,data\uf20\uf20-04.cnf,(FALSE),0,
+5,1,-2,20,91,data\uf20\uf20-05.cnf,(FALSE),0,

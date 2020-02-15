@@ -25,7 +25,7 @@ public:
 	~SplitState();
 	list<SplitState*>* getSplit() const;
 
-	const map <unsigned int, const VariableState*>* getVariableMap() const;
+	const unordered_map <unsigned int, const VariableState*>* getVariableMap() const;
 
 	unsigned int getRemainingClauseCount() const;
 	unsigned int getRemainingVariableCount() const;
