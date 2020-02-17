@@ -91,7 +91,9 @@ ReturnValue* solveSplitSat(const SATSolver* solver, void* variables)
 #endif
 
 	//Run the evaluation
-	SplitSatSolution* i = _solveSplitSatVerify(value, solver, value->state, new SplitState(value->state->getState()), depthSatVariables->SortFunctions, depthSatVariables->Decider, depthSatVariables->maxDepth);
+	SplitState* satState = new SplitState(value->state->getState());
+	SplitSatSolution* i = _solveSplitSatVerify(value, solver, value->state, satState, depthSatVariables->SortFunctions, depthSatVariables->Decider, depthSatVariables->maxDepth);
+	delete satState;
 	if (i->state != SolverState::NO_SOLUTION_FOUND && i->state != SolverState::SOLUTION_FOUND)
 	{
 		if (i->solutions != NULL)
@@ -107,10 +109,12 @@ ReturnValue* solveSplitSat(const SATSolver* solver, void* variables)
 	{
 		if (i->solutions != NULL)
 		{
+			assert(i->state == SolverState::SOLUTION_FOUND);
 			value->solved = SolvedStates::COMPLETED_SOLUTION;
 		}
 		else
 		{
+			assert(i->state != SolverState::SOLUTION_FOUND);
 			value->solved = SolvedStates::COMPLETED_NO_SOLUTION;
 		}
 	}
@@ -128,8 +132,11 @@ ReturnValue* solveSplitSat(const SATSolver* solver, void* variables)
 			}
 			solution[i] = 0;
 			value->solutions->push_back(solution);
+			delete (*iter);
 		}
+		delete i->solutions;
 	}
+	delete i;
 	value->variables = NULL;
 
 

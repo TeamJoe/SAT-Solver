@@ -1,7 +1,7 @@
 Count,Expected Results,Variable Count,Clause Count,Function Name,State,Variable Evaluations,Solutions Count,Difference From First
 1,1,3,7,DebugA2,-2,2,0,1
 2,1,4,8,DebugA2,2,4,1,1
-3,1,4,10,DebugA2,-2,8,0,1
+3,1,4,10,DebugA2,-2,9,0,1
 4,1,4,11,DebugA2,-2,8,0,1
 5,1,4,16,DebugA2,2,8,1,1
 6,1,2,1,DebugA2,2,1,1,1
