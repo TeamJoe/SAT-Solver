@@ -4,3 +4,5 @@
 11 abc aBc abd aBd Abd ABd aCD AcD ACd ACD bCD
 16 ABD aBD AbD ACD aCD AcD BCD bCD BcD ABC aBC AbC abC ABc aBc bcd
 3 aaA aBb abb
+3 ab cd CD
+4 ab AB cd CD

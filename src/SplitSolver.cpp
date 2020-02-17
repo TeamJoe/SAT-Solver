@@ -28,6 +28,12 @@ struct SplitSatVariables
 	unsigned int sortCount;
 };
 
+struct SplitSatSolution
+{
+	SolverState state;
+	list<list<int>*>* solutions;
+};
+
 void analyzeSplitSat(ofstream& file, const ReturnValue* value)
 {
 
@@ -49,11 +55,11 @@ void* createSplitSatVariable(const SAT* sat, const unsigned int currentCount, co
 	return depthVariables;
 }
 
-
-SolverState _solveSplitSatVerify(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, SplitState* satState, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth);
-SolverState _solveSplitSatNextVariable(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, SplitState* satState, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth);
-SolverState _solveSplitSatDepthSolver(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, SplitState* satState, const VariableState* var1, VariableSolutions solution, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth);
-SolverState _solveSplitSatSplitSolver(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, list<SplitState*>* satState, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth);
+list<list<int>*>* mergeSolutions(list<list<int>*>* l1, list<list<int>*>* l2);
+SplitSatSolution* _solveSplitSatVerify(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, SplitState* satState, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth);
+SplitSatSolution* _solveSplitSatNextVariable(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, SplitState* satState, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth);
+SplitSatSolution* _solveSplitSatDepthSolver(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, SplitState* satState, const VariableState* var1, VariableSolutions solution, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth);
+SplitSatSolution* _solveSplitSatSplitSolver(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, list<SplitState*>* satState, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth);
 void _setVariableSplitSat(SATSolverState* solverState, const VariableState* var1, bool solution);
 ReturnValue* solveSplitSat(const SATSolver* solver, void* variables)
 {
@@ -85,10 +91,10 @@ ReturnValue* solveSplitSat(const SATSolver* solver, void* variables)
 #endif
 
 	//Run the evaluation
-	SolverState i = _solveSplitSatVerify(value, solver, value->state, new SplitState(value->state->getState()), depthSatVariables->SortFunctions, depthSatVariables->Decider, depthSatVariables->maxDepth);
-	if (i != SolverState::NO_SOLUTION_FOUND && i != SolverState::SOLUTION_FOUND)
+	SplitSatSolution* i = _solveSplitSatVerify(value, solver, value->state, new SplitState(value->state->getState()), depthSatVariables->SortFunctions, depthSatVariables->Decider, depthSatVariables->maxDepth);
+	if (i->state != SolverState::NO_SOLUTION_FOUND && i->state != SolverState::SOLUTION_FOUND)
 	{
-		if (value->solutions->size() > 0)
+		if (i->solutions != NULL)
 		{
 			value->solved = SolvedStates::NOT_COMPLETED_SOLUTION;
 		}
@@ -99,13 +105,29 @@ ReturnValue* solveSplitSat(const SATSolver* solver, void* variables)
 	}
 	else
 	{
-		if (value->solutions->size() > 0)
+		if (i->solutions != NULL)
 		{
 			value->solved = SolvedStates::COMPLETED_SOLUTION;
 		}
 		else
 		{
 			value->solved = SolvedStates::COMPLETED_NO_SOLUTION;
+		}
+	}
+	if (i->solutions != NULL)
+	{
+		for (list<list<int>*>::const_iterator iter = i->solutions->cbegin(); iter != i->solutions->cend(); iter++)
+		{
+			(*iter)->sort();
+			int* solution = new int[(*iter)->size() + 2];
+			solution[0] = (*iter)->size();
+			int i = 1;
+			for (list<int>::const_iterator valueIter1 = (*iter)->cbegin(); valueIter1 != (*iter)->cend(); valueIter1++)
+			{
+				solution[i++] = *valueIter1;
+			}
+			solution[i] = 0;
+			value->solutions->push_back(solution);
 		}
 	}
 	value->variables = NULL;
@@ -123,34 +145,35 @@ ReturnValue* solveSplitSat(const SATSolver* solver, void* variables)
 	return value;
 }
 
-SolverState _solveSplitSatVerify(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, SplitState* satState, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth)
+SplitSatSolution* _solveSplitSatVerify(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, SplitState* satState, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth)
 {
 	if (satState->getRemainingClauseCount() == 0)
 	{
-		// TODO: Something to merge solutions;
-		return SolverState::SOLUTION_FOUND;
+		list<list<int>*>* value = new list<list<int>*>();
+		value->push_back(satState->getState());
+		return new SplitSatSolution{ SolverState::SOLUTION_FOUND, value };
 	}
 	else if (satState->getRemainingVariableCount() == 0)
 	{
-		return SolverState::NO_SOLUTION_FOUND;
+		return new SplitSatSolution{ SolverState::NO_SOLUTION_FOUND, NULL };
 	}
 	else if (!satState->canSolve())
 	{
-		return  SolverState::NO_SOLUTION_FOUND;
+		return new SplitSatSolution{ SolverState::NO_SOLUTION_FOUND, NULL };
 	}
 	else if (0 < maxDepth && maxDepth < solverState->getState()->getVariableAttempts())
 	{
-		return SolverState::MAX_DEPTH_REACHED;
+		return new SplitSatSolution{ SolverState::MAX_DEPTH_REACHED, NULL };
 	}
 	else if (solver->isTerminatingAllThreads)
 	{
-		return SolverState::TERMINATE_EARLY;
+		return new SplitSatSolution{ SolverState::TERMINATE_EARLY, NULL };
 	}
 
 	return _solveSplitSatNextVariable(value, solver, solverState, satState, SortFunctions, Decider, maxDepth);
 }
 
-SolverState _solveSplitSatNextVariable(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, SplitState* satState, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth)
+SplitSatSolution* _solveSplitSatNextVariable(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, SplitState* satState, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth)
 {
 	const VariableState* var1 = NextVariable(SortFunctions, Decider, satState->getVariableMap());
 	assert(var1 != NULL);
@@ -159,20 +182,12 @@ SolverState _solveSplitSatNextVariable(ReturnValue* value, const SATSolver* solv
 	VariableSolutions solution = Decider(var1);
 	assert(solution != VariableSolutions::VARIABLE_NO_SOLUTION);
 
-	SolverState i;
+	SplitSatSolution* i;
 	if (solution == VariableSolutions::MUST_POSITIVE
 		|| solution == VariableSolutions::MUST_NEGATIVE
 		|| solution == VariableSolutions::VARIABLE_NO_SOLUTION)
 	{
-		_setVariableSplitSat(solverState, var1, solution == VariableSolutions::VARIABLE_POSITIVE || solution == VariableSolutions::MUST_POSITIVE);
-
-		assert(var1->getValue() != 0);
-		assert((solution == VariableSolutions::VARIABLE_POSITIVE || solution == VariableSolutions::MUST_POSITIVE) && var1->getValue() > 0
-			|| (solution == VariableSolutions::VARIABLE_NEGATIVE || solution == VariableSolutions::MUST_NEGATIVE) && var1->getValue() < 0
-			|| (solution == VariableSolutions::VARIABLE_UNKNOWN && var1->getValue() != 0)
-			|| (solution == VariableSolutions::VARIABLE_NO_SOLUTION && var1->getValue() != 0));
-
-		i = _solveSplitSatVerify(value, solver, solverState, satState, SortFunctions, Decider, maxDepth);
+		i = _solveSplitSatDepthSolver(value, solver, solverState, satState, var1, solution, SortFunctions, Decider, maxDepth);
 	}
 	else
 	{
@@ -188,21 +203,7 @@ SolverState _solveSplitSatNextVariable(ReturnValue* value, const SATSolver* solv
 		}
 	}
 
-#ifndef FIND_ALL_SOLUTIONS
-	if (i != SolverState::NO_SOLUTION_FOUND)
-	{
-#else
-	if (i != SolverState::NO_SOLUTION_FOUND && i != SolverState::SOLUTION_FOUND)
-	{
-#endif
-		return i;
-	}
-	assert(!(0 < maxDepth && maxDepth < solverState->getState()->getVariableAttempts()));
-
-	//no solution found so step back and continue search
-	solverState->unsetVariable(var1->getVariable());
-
-	return SolverState::NO_SOLUTION_FOUND;
+	return i;
 }
 
 bool compareSplitState(const SplitState* first, const SplitState* second)
@@ -210,25 +211,30 @@ bool compareSplitState(const SplitState* first, const SplitState* second)
 	return first->getRemainingVariableCount() < second->getRemainingVariableCount();
 }
 
-SolverState _solveSplitSatSplitSolver(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, list<SplitState*>* satState, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth)
+SplitSatSolution* _solveSplitSatSplitSolver(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, list<SplitState*>* satState, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth)
 {
 	satState->sort(compareSplitState);
-	SolverState i;
+	SplitSatSolution* i = NULL;
+	list<list<int>*>* solution = NULL;
 	for (list<SplitState*>::const_iterator iter = satState->cbegin(); iter != satState->cend(); iter++)
 	{
 		i = _solveSplitSatVerify(value, solver, solverState, *iter, SortFunctions, Decider, maxDepth);
-		if (i != SolverState::SOLUTION_FOUND) {
+		if (i->state != SolverState::SOLUTION_FOUND) {
 			break;
 		}
+		solution = mergeSolutions(solution, i->solutions);
+		delete i;
+		i = NULL;
 	}
 	for (list<SplitState*>::const_iterator iter = satState->cbegin(); iter != satState->cend(); iter++)
 	{
 		delete (*iter);
 	}
-	return i;
+	assert((i == NULL) != (solution == NULL));
+	return i == NULL ? new SplitSatSolution{ SolverState::SOLUTION_FOUND, solution } : i;
 }
 
-SolverState _solveSplitSatDepthSolver(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, SplitState* satState, const VariableState* var1, VariableSolutions solution, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth)
+SplitSatSolution* _solveSplitSatDepthSolver(ReturnValue* value, const SATSolver* solver, SATSolverState* solverState, SplitState* satState, const VariableState* var1, VariableSolutions solution, const list <SortFunction*>* SortFunctions, VariableSolutions(Decider)(const VariableState*), const unsigned long long maxDepth)
 {
 	//Check if chain has a solution
 	_setVariableSplitSat(solverState, var1, solution == VariableSolutions::VARIABLE_POSITIVE || solution == VariableSolutions::MUST_POSITIVE);
@@ -239,15 +245,16 @@ SolverState _solveSplitSatDepthSolver(ReturnValue* value, const SATSolver* solve
 		|| (solution == VariableSolutions::VARIABLE_UNKNOWN && var1->getValue() != 0)
 		|| (solution == VariableSolutions::VARIABLE_NO_SOLUTION && var1->getValue() != 0));
 
-	SolverState i = _solveSplitSatVerify(value, solver, solverState, satState, SortFunctions, Decider, maxDepth);
+	SplitSatSolution* i1 = _solveSplitSatVerify(value, solver, solverState, satState, SortFunctions, Decider, maxDepth);
 #ifndef FIND_ALL_SOLUTIONS
-	if (i != SolverState::NO_SOLUTION_FOUND)
+	if (i1->state != SolverState::NO_SOLUTION_FOUND)
 	{
 #else
-	if (i != SolverState::NO_SOLUTION_FOUND && i != SolverState::SOLUTION_FOUND)
+	if (i1->state != SolverState::NO_SOLUTION_FOUND && i1->state != SolverState::SOLUTION_FOUND)
 	{
 #endif
-		return i;
+		solverState->unsetVariable(var1->getVariable());
+		return i1;
 	}
 	assert(!(0 < maxDepth && maxDepth < solverState->getState()->getVariableAttempts()));
 
@@ -262,10 +269,42 @@ SolverState _solveSplitSatDepthSolver(ReturnValue* value, const SATSolver* solve
 			|| (solution == VariableSolutions::VARIABLE_UNKNOWN && var1->getValue() != 0)
 			|| (solution == VariableSolutions::VARIABLE_NO_SOLUTION && var1->getValue() != 0));
 
-		i = _solveSplitSatVerify(value, solver, solverState, satState, SortFunctions, Decider, maxDepth);
+		SplitSatSolution* i2 = _solveSplitSatVerify(value, solver, solverState, satState, SortFunctions, Decider, maxDepth);
+		i1->solutions = mergeSolutions(i1->solutions, i2->solutions);
+#ifndef FIND_ALL_SOLUTIONS
+		if (i2->state != SolverState::NO_SOLUTION_FOUND)
+		{
+			assert(i1->state == SolverState::NO_SOLUTION_FOUND);
+#else
+		if (i2->state != SolverState::NO_SOLUTION_FOUND && i2 != SolverState::SOLUTION_FOUND)
+		{
+#endif
+			assert(i1->state == SolverState::NO_SOLUTION_FOUND
+				|| i1->state == SolverState::SOLUTION_FOUND);
+			i1->state = i2->state;
+		}
+		else
+		{
+#ifdef FIND_ALL_SOLUTIONS
+			assert(i1->state == SolverState::NO_SOLUTION_FOUND
+				|| i1->state == SolverState::SOLUTION_FOUND);
+			assert(i2->state == SolverState::NO_SOLUTION_FOUND
+				|| i2->state == SolverState::SOLUTION_FOUND);
+			i1->state = i1->state == SolverState::SOLUTION_FOUND
+				|| i2->state == SolverState::SOLUTION_FOUND
+				? SolverState::SOLUTION_FOUND
+				: SolverState::NO_SOLUTION_FOUND;
+#else
+			assert(i1->state == SolverState::NO_SOLUTION_FOUND);
+			assert(i2->state == SolverState::NO_SOLUTION_FOUND);
+#endif
+		}
+		delete i2;
 	}
 
-	return i;
+
+	solverState->unsetVariable(var1->getVariable());
+	return i1;
 }
 
 void _setVariableSplitSat(SATSolverState * solverState, const VariableState * var1, bool solution)
@@ -274,7 +313,7 @@ void _setVariableSplitSat(SATSolverState * solverState, const VariableState * va
 
 #ifdef OUTPUT_INTERMEDIATE_SOLUTION
 	cout << var1->getValue() << "(" << solution << "): ";
-	const list <const list <int>*>* currentClauses = &satState->getRemainingClauses();
+	const list <const list <int>*>* currentClauses = &solverState->getState()->getRemainingClauses();
 	for (list <const list <int>*>::const_iterator iter = currentClauses->cbegin(); iter != currentClauses->cend(); iter++)
 	{
 		cout << "(";
@@ -291,4 +330,80 @@ void _setVariableSplitSat(SATSolverState * solverState, const VariableState * va
 	cout << endl;
 	delete currentClauses;
 #endif
+}
+
+list<list<int>*>* mergeSolutions(list<list<int>*>* l1, list<list<int>*>* l2)
+{
+	if (l1 == NULL) 
+	{
+		return l2;
+	} 
+	else if (l2 == NULL) 
+	{
+		return l1;
+	}
+	else if (l1->size() < 1)
+	{
+		delete l1;
+		return l2;
+	}
+	else if (l2->size() < 1)
+	{
+		delete l2;
+		return l1;
+	}
+	else if (l2->size() == 1)
+	{
+		for (list<list<int>*>::const_iterator iter = l1->cbegin(); iter != l1->cend(); iter++)
+		{
+			for (list<int>::const_iterator valueIter = (*l2->cbegin())->cbegin(); valueIter != (*l2->cbegin())->cend(); valueIter++)
+			{
+				(*iter)->push_back(*valueIter);
+			}
+		}
+		delete *(l2->cbegin());
+		delete l2;
+		return l1;
+	}
+	else if (l1->size() == 1)
+	{
+		for (list<list<int>*>::const_iterator iter = l2->cbegin(); iter != l2->cend(); iter++)
+		{
+			for (list<int>::const_iterator valueIter = (*l1->cbegin())->cbegin(); valueIter != (*l1->cbegin())->cend(); valueIter++)
+			{
+				(*iter)->push_back(*valueIter);
+			}
+		}
+		delete* (l1->cbegin());
+		delete l1;
+		return l2;
+	}
+	else
+	{
+		list<list<int>*>* l3 = new list<list<int>*>();
+		for (list<list<int>*>::const_iterator iter1 = l1->cbegin(); iter1 != l1->cend(); iter1++)
+		{
+			for (list<list<int>*>::const_iterator iter2 = l2->cbegin(); iter2 != l2->cend(); iter2++)
+			{
+				list<int>* solution = new list<int>();
+				for (list<int>::const_iterator valueIter1 = (*iter1)->cbegin(); valueIter1 != (*iter1)->cend(); valueIter1++)
+				{
+					solution->push_back(*valueIter1);
+				}
+				for (list<int>::const_iterator valueIter2 = (*iter2)->cbegin(); valueIter2 != (*iter2)->cend(); valueIter2++)
+				{
+					solution->push_back(*valueIter2);
+				}
+				l3->push_back(solution);
+			}
+			delete (*iter1);
+		}
+		for (list<list<int>*>::const_iterator iter2 = l2->cbegin(); iter2 != l2->cend(); iter2++)
+		{
+			delete (*iter2);
+		}
+		delete l1;
+		delete l2;
+		return l3;
+	}
 }

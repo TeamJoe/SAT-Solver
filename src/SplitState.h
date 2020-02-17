@@ -23,6 +23,7 @@ private:
 public:
 	SplitState(const SATState* root);
 	~SplitState();
+	list<int>* getState() const;
 	list<SplitState*>* getSplit() const;
 
 	const unordered_map <unsigned int, const VariableState*>* getVariableMap() const;

@@ -223,7 +223,7 @@ void _setVariableDepthSat(SATSolverState* solverState, const VariableState* var1
 
 #ifdef OUTPUT_INTERMEDIATE_SOLUTION
 	cout << var1->getValue() << "(" << solution << "): ";
-	const list <const list <int>*>* currentClauses = &satState->getRemainingClauses();
+	const list <const list <int>*>* currentClauses = &solverState->getState()->getRemainingClauses();
 	for (list <const list <int>*>::const_iterator iter = currentClauses->cbegin(); iter != currentClauses->cend(); iter++)
 	{
 		cout << "(";

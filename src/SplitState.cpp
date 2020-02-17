@@ -28,6 +28,20 @@ SplitState::~SplitState()
 	this->variables = NULL;
 }
 
+list<int>* SplitState::getState() const
+{
+	list<int>* value = new list<int>();
+	for (unordered_map <unsigned int, VariableState*>::const_iterator iter = this->variables->cbegin(); iter != this->variables->cend(); iter++)
+	{
+		if (!iter->second->isActive())
+		{
+			assert(iter->second->getValue() != 0);
+			value->push_back(iter->second->getValue());
+		}
+	}
+	return value;
+}
+
 list<unordered_map<unsigned int, VariableState*>*>* SplitState::getTrees() const
 {
 	list<unordered_map<unsigned int, VariableState*>*>* trees = new list<unordered_map<unsigned int, VariableState*>*>();
@@ -106,9 +120,11 @@ unsigned int SplitState::getRemainingClauseCount() const
 		for (unsigned int i = 0; i < iter->second->clause->Size(); i++) {
 			if (this->variables->find(iter->second->variables[i]->variable->GetVariable()) != this->variables->cend()) {
 				count++;
+				break;
 			}
 		}
 	}
+	assert(count <= this->_root->getRemainingClauseCount());
 	return count;
 }
 unsigned int SplitState::getRemainingVariableCount() const
@@ -120,6 +136,7 @@ unsigned int SplitState::getRemainingVariableCount() const
 			count++;
 		}
 	}
+	assert(count <= this->_root->getRemainingVariableCount());
 	return count;
 }
 bool SplitState::hasSolution() const

@@ -96,7 +96,7 @@ ReturnValue * solveBottomSat(const SATSolver * solver, void * variables)
 
 			
 #ifdef OUTPUT_INTERMEDIATE_SOLUTION
-			cout << value << "(" << solution << "): ";
+			cout << value << "(" << (int)solution << "): ";
 			const list <const list <int> *> * currentClauses = &solverState->getState()->getRemainingClauses();
 			for(list <const list <int> *>::const_iterator iter = currentClauses->cbegin(); iter != currentClauses->cend(); iter++)
 			{
